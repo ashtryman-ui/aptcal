@@ -215,7 +215,7 @@
       <small>타입 선택 시 자동입력</small>
     </div>
     <div class="fi">
-      <input type="number" id="f-area" class="wsm" placeholder="타입 선택 시 자동 입력" oninput="calc()">
+      <input type="number" id="f-area" class="wsm" placeholder="타입 선택 시 자동 입력" oninput="calc()" onfocus="this.select()">
       <span class="unit">㎡</span>
     </div>
   </div>
@@ -234,7 +234,7 @@
       <small>조합 고지 금액</small>
     </div>
     <div class="fi">
-      <input type="number" id="f-member-price" placeholder="조합원분양가 (원)" oninput="calc()">
+      <input type="number" id="f-member-price" placeholder="조합원분양가 (원)" oninput="calc()" onfocus="this.select()">
       <span class="unit">원</span>
     </div>
   </div>
@@ -248,7 +248,7 @@
       <small>종전 자산 평가액</small>
     </div>
     <div class="fi">
-      <input type="number" id="f-appraised" placeholder="감정평가액 (원)" oninput="calc()">
+      <input type="number" id="f-appraised" placeholder="감정평가액 (원)" oninput="calc()" onfocus="this.select()">
       <span class="unit">원</span>
     </div>
   </div>
@@ -262,7 +262,7 @@
       <small>조합 고지 기준</small>
     </div>
     <div class="fi">
-      <input type="number" id="f-ratio" class="wsm" placeholder="비례율 (%)" oninput="calc()">
+      <input type="number" id="f-ratio" class="wsm" placeholder="비례율 (%)" oninput="calc()" onfocus="this.select()">
       <span class="unit">%</span>
     </div>
   </div>
@@ -292,7 +292,7 @@
       <small id="burden-note">조합 고지서에서 확인한 금액을 입력하세요</small>
     </div>
     <div class="fi">
-      <input type="number" id="f-burden" placeholder="조합 고지서의 추가분담금을 입력해주세요" oninput="onBurden()">
+      <input type="number" id="f-burden" placeholder="조합 고지서의 추가분담금을 입력해주세요" oninput="onBurden()" onfocus="this.select()">
       <span class="unit">원</span>
     </div>
   </div>
@@ -310,7 +310,7 @@
         <i class="fas fa-circle-info"></i></button>
     </div>
     <div class="fi">
-      <input type="number" id="f-balcony" placeholder="국민주택채권 매입액을 입력해주세요" oninput="calc()">
+      <input type="number" id="f-balcony" placeholder="국민주택채권 매입액을 입력해주세요" oninput="calc()" onfocus="this.select()">
       <span class="unit">원</span>
     </div>
   </div>
@@ -322,7 +322,7 @@
         <i class="fas fa-circle-info"></i></button>
     </div>
     <div class="fi">
-      <input type="number" id="f-door" placeholder="국민주택채권 매입액을 입력해주세요" oninput="calc()">
+      <input type="number" id="f-door" placeholder="국민주택채권 매입액을 입력해주세요" oninput="calc()" onfocus="this.select()">
       <span class="unit">원</span>
     </div>
   </div>
@@ -335,7 +335,7 @@
         <i class="fas fa-circle-info"></i></button>
     </div>
     <div class="fi">
-      <input type="number" id="f-aircon" placeholder="국민주택채권 매입액을 입력해주세요" oninput="calc()">
+      <input type="number" id="f-aircon" placeholder="국민주택채권 매입액을 입력해주세요" oninput="calc()" onfocus="this.select()">
       <span class="unit">원</span>
     </div>
   </div>
@@ -347,7 +347,7 @@
         <i class="fas fa-circle-info"></i></button>
     </div>
     <div class="fi">
-      <input type="number" id="f-opt-etc" placeholder="0" oninput="calc()">
+      <input type="number" id="f-opt-etc" placeholder="0" oninput="calc()" onfocus="this.select()">
       <span class="unit">원</span>
     </div>
   </div>
@@ -371,7 +371,7 @@
       <small id="tax-rate-note">분양가 입력 후 표시</small>
     </div>
     <div class="fi">
-      <input type="number" id="f-acq-tax" class="auto" placeholder="자동" oninput="onAcqTaxInput()">
+      <input type="number" id="f-acq-tax" class="auto" placeholder="자동" oninput="onAcqTaxInput()" onfocus="this.select()">
       <span class="unit">원</span>
     </div>
   </div>
@@ -385,7 +385,7 @@
       <small id="stamp-note">분양가 입력 후 자동계산</small>
     </div>
     <div class="fi">
-      <input type="number" id="f-stamp" class="auto" placeholder="자동" oninput="onStampInput()">
+      <input type="number" id="f-stamp" class="auto" placeholder="자동" oninput="onStampInput()" onfocus="this.select()">
       <span class="unit">원</span>
     </div>
   </div>
@@ -398,7 +398,7 @@
         <i class="fas fa-circle-info"></i></button>
     </div>
     <div class="fi">
-      <input type="number" id="f-bond" placeholder="국민주택채권 매입액을 입력해주세요" oninput="calc()">
+      <input type="number" id="f-bond" placeholder="국민주택채권 매입액을 입력해주세요" oninput="calc()" onfocus="this.select()">
       <span class="unit">원</span>
     </div>
   </div>
@@ -412,7 +412,7 @@
       <small id="legal-note">분양가 입력 후 자동계산</small>
     </div>
     <div class="fi">
-      <input type="number" id="f-legal" class="auto" placeholder="자동" oninput="onLegalInput()">
+      <input type="number" id="f-legal" class="auto" placeholder="자동" oninput="onLegalInput()" onfocus="this.select()">
       <span class="unit">원</span>
     </div>
   </div>
@@ -449,7 +449,7 @@
         <small>받으신 총 대출금</small>
       </div>
       <div class="fi">
-        <input type="number" id="f-mov-loan" placeholder="0" oninput="calc()">
+        <input type="number" id="f-mov-loan" placeholder="0" oninput="calc()" onfocus="this.select()">
         <span class="unit">원</span>
       </div>
     </div>
@@ -476,7 +476,7 @@
             <i class="fas fa-circle-info"></i></button>
         </div>
         <div class="fi">
-          <input type="number" id="f-mov-int" placeholder="0" oninput="calc()">
+          <input type="number" id="f-mov-int" placeholder="0" oninput="calc()" onfocus="this.select()">
           <span class="unit">원</span>
         </div>
       </div>
@@ -497,7 +497,7 @@
       <small>입주 초기 관리비 예치금</small>
     </div>
     <div class="fi">
-      <input type="number" id="f-mgmt" placeholder="선수 관리비를 입력해주세요" oninput="calc()">
+      <input type="number" id="f-mgmt" placeholder="선수 관리비를 입력해주세요" oninput="calc()" onfocus="this.select()">
       <span class="unit">원</span>
     </div>
   </div>
@@ -511,7 +511,7 @@
       <small>이삿짐센터, 사다리차</small>
     </div>
     <div class="fi">
-      <input type="number" id="f-move" placeholder="이사비를 입력해주세요" oninput="calc()">
+      <input type="number" id="f-move" placeholder="이사비를 입력해주세요" oninput="calc()" onfocus="this.select()">
       <span class="unit">원</span>
     </div>
   </div>
@@ -525,7 +525,7 @@
       <small>청소·도배·줄눈·가전·가구 등</small>
     </div>
     <div class="fi">
-      <input type="number" id="f-misc" placeholder="기타 비용을 입력해주세요" oninput="calc()">
+      <input type="number" id="f-misc" placeholder="기타 비용을 입력해주세요" oninput="calc()" onfocus="this.select()">
       <span class="unit">원</span>
     </div>
   </div>
@@ -557,7 +557,7 @@
         <small>대출 받은 중도금 전체</small>
       </div>
       <div class="fi">
-        <input type="number" id="f-mid-total" placeholder="중도금 대출 총액 (원)" oninput="calc()">
+        <input type="number" id="f-mid-total" placeholder="중도금 대출 총액 (원)" oninput="calc()" onfocus="this.select()">
         <span class="unit">원</span>
       </div>
     </div>
@@ -571,7 +571,7 @@
         <small>직접 현금 납부한 금액</small>
       </div>
       <div class="fi">
-        <input type="number" id="f-mid-self" placeholder="0" oninput="calc()">
+        <input type="number" id="f-mid-self" placeholder="0" oninput="calc()" onfocus="this.select()">
         <span class="unit">원</span>
       </div>
     </div>
@@ -585,7 +585,7 @@
         <small>잔금 시 상환 필요 금액</small>
       </div>
       <div class="fi">
-        <input type="number" id="f-mid-loan" placeholder="0" oninput="calc()">
+        <input type="number" id="f-mid-loan" placeholder="0" oninput="calc()" onfocus="this.select()">
         <span class="unit">원</span>
       </div>
     </div>
@@ -598,7 +598,7 @@
           <i class="fas fa-circle-info"></i></button>
       </div>
       <div class="fi">
-        <input type="number" id="f-mid-rate" class="wsm" placeholder="이율 (%)" oninput="calc()">
+        <input type="number" id="f-mid-rate" class="wsm" placeholder="이율 (%)" oninput="calc()" onfocus="this.select()">
         <span class="unit">%</span>
       </div>
     </div>
@@ -610,7 +610,7 @@
           <i class="fas fa-circle-info"></i></button>
       </div>
       <div class="fi">
-        <input type="number" id="f-mid-months" class="wsm" placeholder="개월수" oninput="calc()">
+        <input type="number" id="f-mid-months" class="wsm" placeholder="개월수" oninput="calc()" onfocus="this.select()">
         <span class="unit">개월</span>
       </div>
     </div>
@@ -634,7 +634,7 @@
         <small>실제 납부 이자 금액</small>
       </div>
       <div class="fi">
-        <input type="number" id="f-mid-int-pay" placeholder="0" oninput="calc()">
+        <input type="number" id="f-mid-int-pay" placeholder="0" oninput="calc()" onfocus="this.select()">
         <span class="unit">원</span>
       </div>
     </div>
@@ -668,7 +668,7 @@
         <small>잔금 중 대출로 충당할 금액</small>
       </div>
       <div class="fi">
-        <input type="number" id="f-mtg" placeholder="0" oninput="calc()">
+        <input type="number" id="f-mtg" placeholder="0" oninput="calc()" onfocus="this.select()">
         <span class="unit">원</span>
       </div>
     </div>
