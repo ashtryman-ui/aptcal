@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>대시보드 — 입주 현금 계산기</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="members.js"></script>
+  <style>
+    :root{--navy:#0d2b55;--blue:#1a56db;--blue-mid:#1c64f2;--blue-pale:#eff6ff;--blue-bdr:#bfdbfe;--border:#e2e8f0;--bg:#f1f5f9;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);font-size:14px;}
+    /* header */
+    .hd{background:var(--navy);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+    .hd .ttl{color:#fff;font-size:15px;font-weight:700;letter-spacing:-.3px}
+    .hd .sub{color:rgba(255,255,255,.6);font-size:11px;margin-top:2px}
+    .btn-logout{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;
+                 border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;}
+    .btn-logout:hover{background:rgba(255,255,255,.22)}
+    /* tab nav */
+    .tab-nav-wrap{background:var(--navy);padding:0 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .tab-nav-wrap::-webkit-scrollbar{display:none}
+    .tab-nav{display:flex;gap:4px;padding-bottom:1px;}
+    .tab-btn{
+      flex-shrink:0;padding:9px 16px;font-size:13px;font-weight:600;color:rgba(255,255,255,.6);
+      border:none;background:transparent;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap;
+    }
+    .tab-btn.active{color:#fff;border-bottom-color:#bfdbfe;}
+    /* content */
+    .content{padding:12px 12px 40px;}
+    /* unit card */
+    .unit-card{background:#fff;border-radius:14px;margin-bottom:12px;box-shadow:0 1px 5px rgba(0,0,0,.09);overflow:hidden;}
+    .unit-card-head{background:var(--navy);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+    .unit-card-head .uname{font-size:14px;font-weight:700;letter-spacing:-.2px}
+    .unit-card-head .ubadge{background:rgba(255,255,255,.18);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;}
+    .unit-body{padding:16px;}
+    .unit-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;}
+    .unit-row .lbl{color:#64748b}
+    .unit-row .val{font-weight:600;color:#1e293b}
+    .unit-row .val.big{font-size:18px;font-weight:800;color:var(--blue-mid)}
+    .unit-row .val.none{color:#94a3b8;font-weight:400;font-size:12px}
+    .unit-divider{border-top:1px solid var(--border);margin:10px 0;}
+    .btn-calc{
+      width:100%;padding:11px;font-size:14px;font-weight:700;
+      background:var(--blue);color:#fff;border:none;border-radius:10px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+    }
+    .btn-calc:hover{background:#1245b5}
+    .saved-badge{display:inline-flex;align-items:center;gap:4px;background:#f0fdf4;
+                  border:1px solid #bbf7d0;color:#166534;border-radius:6px;
+                  padding:3px 8px;font-size:11px;font-weight:600;}
+    /* 저장 요약 */
+    .sum-section{margin-bottom:12px;}
+    .sum-label{font-size:13px;font-weight:700;color:#1e293b;margin-bottom:6px;padding-bottom:4px;border-bottom:2px solid var(--blue-bdr);}
+    .sum-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;border-bottom:1px solid #f1f5f9;}
+    .sum-row:last-child{border-bottom:none}
+    .sum-row .sl{color:#475569}
+    .sum-row .sv{font-weight:700;color:#1e293b}
+    .sum-row .sv.neg{color:#dc2626}
+    .sum-total{display:flex;justify-content:space-between;align-items:center;
+               background:var(--blue-pale);border:1px solid var(--blue-bdr);
+               border-radius:10px;padding:12px 14px;margin:12px 0;}
+    .sum-total .tl{font-size:13px;font-weight:700;color:var(--blue-mid)}
+    .sum-total .tv{font-size:22px;font-weight:800;color:var(--blue-mid)}
+    .btn-edit{
+      width:100%;padding:12px;font-size:14px;font-weight:700;
+      background:var(--blue);color:#fff;border:none;
+      border-radius:10px;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+    }
+    .btn-edit:hover{background:#1245b5}
+    /* admin log */
+    .log-header-row{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:13px 16px;cursor:pointer;background:#fff;border-radius:12px;
+      margin-bottom:6px;box-shadow:0 1px 4px rgba(0,0,0,.08);
+    }
+    .log-header-row:hover{background:#f8fafc}
+    .log-date{font-size:14px;font-weight:700;color:var(--navy)}
+    .log-badges{display:flex;gap:6px;}
+    .log-badge{border-radius:20px;padding:3px 9px;font-size:12px;font-weight:600;}
+    .log-badge.user{background:#eff6ff;color:var(--blue-mid)}
+    .log-badge.cnt {background:#f0fdf4;color:#166534}
+    .log-entries{background:#fff;border-radius:10px;margin-bottom:10px;overflow:hidden;
+                  box-shadow:0 1px 4px rgba(0,0,0,.06);}
+    .log-entry{display:flex;flex-wrap:wrap;padding:11px 14px;border-bottom:1px solid var(--border);gap:6px;align-items:center;}
+    .log-entry:last-child{border-bottom:none}
+    .le-name{font-size:13px;font-weight:700;color:#1e293b;min-width:60px}
+    .le-phone{font-size:12px;color:#64748b;min-width:110px}
+    .le-units{font-size:11px;color:#94a3b8;flex:1}
+    .le-cnt{font-size:12px;font-weight:700;color:var(--blue-mid);white-space:nowrap}
+    .le-times{font-size:11px;color:#94a3b8;width:100%}
+    .caret{transition:transform .2s;color:rgba(255,255,255,.5);font-size:12px;}
+    .caret.open{transform:rotate(180deg)}
+    .no-log{text-align:center;padding:40px 20px;color:#94a3b8;font-size:14px;}
+    .stat-bar{background:var(--blue);padding:10px 16px;display:flex;gap:20px;}
+    .stat-item{color:#fff;font-size:12px;}
+    .stat-item .sv{font-size:18px;font-weight:800;color:#bfdbfe;display:block;}
+    /* empty state */
+    .empty-state{text-align:center;padding:48px 24px;color:#94a3b8;}
+    .empty-state i{font-size:40px;margin-bottom:12px;opacity:.4;}
+    .empty-state p{font-size:14px;}
+  </style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="hd">
+  <div>
+    <div class="ttl"><i class="fas fa-calculator me-2"></i>입주 현금 계산기</div>
+    <div class="sub" id="hd-sub">로딩 중…</div>
+  </div>
+  <button class="btn-logout" onclick="doLogout()">
+    <i class="fas fa-right-from-bracket"></i>로그아웃
+  </button>
+</div>
+
+<!-- 탭 네비게이션 -->
+<div class="tab-nav-wrap">
+  <div class="tab-nav" id="tab-nav"></div>
+</div>
+
+<!-- 콘텐츠 영역 -->
+<div class="content" id="main-content"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const TYPE_INFO = {
+  '59A':'25평','59B':'25평','73A':'30평','73B':'30평','73C':'30평',
+  '84A':'33평','84B':'33평','84C':'33평','120B':'46평'
+};
+
+let session = null;
+let activeTab = 0;
+
+function doLogout() {
+  clearSession();
+  location.href = 'index.html';
+}
+
+// ── 탭 렌더링 ──────────────────────────────────────────
+function renderTabs(tabs) {
+  const nav = document.getElementById('tab-nav');
+  nav.innerHTML = tabs.map((t, i) =>
+    `<button class="tab-btn${i===activeTab?' active':''}" onclick="switchTab(${i})">${t.label}</button>`
+  ).join('');
+}
+
+function switchTab(i) {
+  activeTab = i;
+  const tabs = buildTabs();
+  renderTabs(tabs);
+  renderContent(tabs[i]);
+}
+
+// ── 탭 구성 ────────────────────────────────────────────
+function buildTabs() {
+  const unitTabs = (session.units || []).map(u => ({
+    label: u.unit,
+    type: 'unit',
+    unit: u,
+  }));
+  if (session.isAdmin) {
+    return [{ label: '관리자', type: 'admin' }, ...unitTabs];
+  }
+  return unitTabs;
+}
+
+// ── 저장 요약 HTML ──────────────────────────────────────
+function buildSummaryHtml(saved) {
+  const inp = saved.inputs || {};
+  const tog = saved.toggles || {};
+  const W = v => fmtWon(parseFloat(v) || 0);
+  const nz = v => (parseFloat(v) || 0) !== 0;
+
+  function row(label, val, neg) {
+    return `<div class="sum-row"><span class="sl">${label}</span><span class="sv${neg?' neg':''}">${W(val)}</span></div>`;
+  }
+
+  let html = '';
+
+  // ── 분양 ──
+  let secA = '';
+  if (nz(inp['f-member-price'])) secA += row('조합원 분양가', inp['f-member-price']);
+  if (nz(inp['f-burden']))       secA += row('추가분담금', inp['f-burden']);
+  if (nz(inp['f-option']))       secA += row('옵션 금액', inp['f-option']);
+  if (secA) html += `<div class="sum-section"><div class="sum-label">분양</div>${secA}</div>`;
+
+  // ── 세금·등기 ──
+  let secB = '';
+  if (nz(inp['f-acq-tax'])) secB += row('취득세', inp['f-acq-tax']);
+  if (nz(inp['f-stamp']))   secB += row('인지세', inp['f-stamp']);
+  if (nz(inp['f-bond']))    secB += row('국민주택채권', inp['f-bond']);
+  if (nz(inp['f-legal']))   secB += row('법무사 수수료', inp['f-legal']);
+  if (secB) html += `<div class="sum-section"><div class="sum-label">세금·등기</div>${secB}</div>`;
+
+  // ── 대출 이자 ──
+  let secC = '';
+  if (nz(inp['f-mov-int-pay'])) secC += row('이주비 이자', inp['f-mov-int-pay']);
+  if (nz(inp['f-mid-int-pay'])) secC += row('중도금 이자', inp['f-mid-int-pay']);
+  if (nz(inp['f-mtg']))         secC += row('담보대출 차감', inp['f-mtg'], true);
+  if (secC) html += `<div class="sum-section"><div class="sum-label">대출·이자</div>${secC}</div>`;
+
+  // ── 기타 ──
+  let secD = '';
+  const mgmtTotal = (parseFloat(inp['f-mgmt-fee'])||0) * (parseFloat(inp['f-mgmt-months'])||0);
+  if (mgmtTotal) secD += `<div class="sum-row"><span class="sl">선수관리비</span><span class="sv">${fmtWon(mgmtTotal)}</span></div>`;
+  if (nz(inp['f-move'])) secD += row('이사비', inp['f-move']);
+  if (nz(inp['f-misc'])) secD += row('기타', inp['f-misc']);
+  if (secD) html += `<div class="sum-section"><div class="sum-label">기타</div>${secD}</div>`;
+
+  return html;
+}
+
+// ── 유닛 카드 렌더링 ────────────────────────────────────
+function renderUnitCard(unitInfo) {
+  const saved = getCalcData(unitInfo.unit);
+  const pyeong = TYPE_INFO[unitInfo.type] || '';
+  const enc = encodeURIComponent(unitInfo.unit);
+  const typ = unitInfo.type;
+
+  if (!saved) {
+    return `
+<div class="unit-card">
+  <div class="unit-card-head">
+    <div class="uname"><i class="fas fa-building me-2"></i>${unitInfo.unit}</div>
+    <span class="ubadge">${typ} · ${pyeong}</span>
+  </div>
+  <div class="unit-body">
+    <div class="unit-row">
+      <span class="lbl">실제 필요한 현금</span>
+      <span class="val none">계산기를 열어 입력하세요</span>
+    </div>
+    <div class="unit-divider"></div>
+    <button class="btn-calc" onclick="openCalc('${enc}','${typ}')">
+      <i class="fas fa-calculator"></i>계산기 열기
+    </button>
+  </div>
+</div>`;
+  }
+
+  const savedAt = new Date(saved.savedAt).toLocaleString('ko-KR',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+  return `
+<div class="unit-card">
+  <div class="unit-card-head">
+    <div>
+      <div class="uname"><i class="fas fa-building me-2"></i>${unitInfo.unit}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.55);margin-top:3px"><i class="fas fa-clock me-1"></i>저장 ${savedAt}</div>
+    </div>
+    <span class="ubadge">${typ} · ${pyeong}</span>
+  </div>
+  <div class="unit-body">
+    ${buildSummaryHtml(saved)}
+    <div class="sum-total">
+      <span class="tl"><i class="fas fa-won-sign me-1"></i>실제 필요한 현금</span>
+      <span class="tv">${fmtWon(saved.total)}</span>
+    </div>
+    <button class="btn-edit" onclick="openCalc('${enc}','${typ}')">
+      <i class="fas fa-pen-to-square"></i>수정하기
+    </button>
+  </div>
+</div>`;
+}
+
+function openCalc(unitEnc, type) {
+  location.href = `calculator.html?unit=${unitEnc}&type=${encodeURIComponent(type)}`;
+}
+
+// ── 로그 렌더링 (관리자) ──────────────────────────────
+
+function renderAdminHome() {
+  const logs  = getLogs();
+  const total = logs.reduce((s, l) => s + l.count, 0);
+  const days  = new Set(logs.map(l => l.date)).size;
+  return `
+<div style="padding:4px 0">
+  <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 5px rgba(0,0,0,.09);margin-bottom:12px;">
+    <div style="background:var(--navy);padding:12px 16px;color:#fff;font-size:13px;font-weight:700;">
+      <i class="fas fa-shield-halved me-2"></i>관리자 메뉴
+    </div>
+    <a href="logs.html" style="display:flex;align-items:center;justify-content:space-between;padding:16px;text-decoration:none;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:var(--blue-pale);display:flex;align-items:center;justify-content:center;">
+          <i class="fas fa-chart-bar" style="color:var(--blue-mid)"></i>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#1e293b">로그 정보</div>
+          <div style="font-size:12px;color:#64748b;margin-top:2px">조합원 로그인 기록 조회</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:#eff6ff;color:var(--blue-mid);border-radius:20px;padding:3px 9px;font-size:12px;font-weight:600;">${logs.length}명 · ${total}회</span>
+        <i class="fas fa-chevron-right" style="color:#94a3b8;font-size:13px"></i>
+      </div>
+    </a>
+    <div style="padding:16px;display:flex;gap:12px;">
+      <div style="flex:1;text-align:center;background:var(--blue-pale);border-radius:10px;padding:12px 8px;">
+        <div style="font-size:20px;font-weight:800;color:var(--blue-mid)">${logs.length}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:2px">로그인 계정</div>
+      </div>
+      <div style="flex:1;text-align:center;background:var(--blue-pale);border-radius:10px;padding:12px 8px;">
+        <div style="font-size:20px;font-weight:800;color:var(--blue-mid)">${total}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:2px">총 로그인</div>
+      </div>
+      <div style="flex:1;text-align:center;background:var(--blue-pale);border-radius:10px;padding:12px 8px;">
+        <div style="font-size:20px;font-weight:800;color:var(--blue-mid)">${days}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:2px">이용일수</div>
+      </div>
+    </div>
+  </div>
+</div>`;
+}
+
+function renderLogs() {
+  const logs = getLogs();
+  if (!logs.length) {
+    return `<div class="no-log"><i class="fas fa-chart-line fa-2x mb-2"></i><br>로그인 기록이 없습니다.</div>`;
+  }
+
+  // 날짜별 그룹
+  const byDate = {};
+  logs.forEach(l => {
+    if (!byDate[l.date]) byDate[l.date] = [];
+    byDate[l.date].push(l);
+  });
+
+  // 전체 통계
+  const totalUsers = logs.length;
+  const totalLogins = logs.reduce((s, l) => s + l.count, 0);
+
+  let html = `
+<div class="stat-bar">
+  <div class="stat-item"><span class="sv">${totalUsers}</span>총 로그인 계정</div>
+  <div class="stat-item"><span class="sv">${totalLogins}</span>총 로그인 횟수</div>
+  <div class="stat-item"><span class="sv">${Object.keys(byDate).length}</span>이용일수</div>
+</div>
+<div style="height:12px"></div>`;
+
+  Object.entries(byDate).sort((a,b) => b[0].localeCompare(a[0])).forEach(([date, entries]) => {
+    const uid = 'log_' + date.replace(/-/g,'');
+    const totalCnt = entries.reduce((s,e) => s + e.count, 0);
+    const dFmt = date.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1년 $2월 $3일');
+
+    html += `
+<div class="log-header-row" onclick="toggleLog('${uid}')">
+  <div>
+    <div class="log-date">${dFmt}</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="log-badges">
+      <span class="log-badge user"><i class="fas fa-user me-1"></i>${entries.length}명</span>
+      <span class="log-badge cnt"><i class="fas fa-right-to-bracket me-1"></i>${totalCnt}회</span>
+    </div>
+    <i class="fas fa-chevron-down caret" id="caret_${uid}"></i>
+  </div>
+</div>
+<div class="log-entries" id="${uid}" style="display:none">`;
+
+    entries.forEach(e => {
+      const unitStr = (e.units||[]).join(', ') || '—';
+      html += `
+  <div class="log-entry">
+    <span class="le-name">${e.name}</span>
+    <span class="le-phone"><i class="fas fa-mobile-screen me-1" style="font-size:11px"></i>${maskPhone(e.phone)}</span>
+    <span class="le-cnt">${e.count}회 로그인</span>
+    <span class="le-units">${unitStr}</span>
+    <span class="le-times"><i class="fas fa-clock me-1" style="font-size:10px"></i>${e.times.join(', ')}</span>
+  </div>`;
+    });
+    html += `</div>`;
+  });
+
+  return html;
+}
+
+function toggleLog(uid) {
+  const el = document.getElementById(uid);
+  const cr = document.getElementById('caret_' + uid);
+  const open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : '';
+  cr.classList.toggle('open', !open);
+}
+
+// ── 콘텐츠 렌더링 ────────────────────────────────────
+function renderContent(tab) {
+  const el = document.getElementById('main-content');
+  if (tab.type === 'unit') {
+    el.innerHTML = renderUnitCard(tab.unit);
+  } else if (tab.type === 'admin') {
+    el.innerHTML = renderAdminHome();
+  } else if (tab.type === 'logs') {
+    if (!session || !session.isAdmin) {
+      el.innerHTML = '<div class="empty-state"><i class="fas fa-lock"></i><p>관리자만 접근 가능합니다.</p></div>';
+      return;
+    }
+    el.innerHTML = renderLogs();
+  }
+}
+
+// ── 초기화 ───────────────────────────────────────────
+(function init() {
+  session = requireSession('index.html');
+  if (!session) return;
+
+  document.getElementById('hd-sub').textContent =
+    session.isAdmin ? '관리자 모드' : `${session.name} 님 반갑습니다`;
+
+  const tabs = buildTabs();
+  if (!tabs.length) {
+    document.getElementById('main-content').innerHTML =
+      `<div class="empty-state"><i class="fas fa-circle-exclamation"></i><p>배정된 호수 정보가 없습니다.</p></div>`;
+    return;
+  }
+  renderTabs(tabs);
+  renderContent(tabs[0]);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>로그 정보 — 관리자</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="members.js"></script>
+  <style>
+    :root{--navy:#0d2b55;--blue:#1a56db;--blue-mid:#1c64f2;--blue-pale:#eff6ff;--blue-bdr:#bfdbfe;--border:#e2e8f0;--bg:#f1f5f9;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);font-size:14px;}
+
+    .hd{background:var(--navy);padding:10px 12px;display:flex;align-items:center;gap:8px;position:sticky;top:0;z-index:200;}
+    .btn-back{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;
+               border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;flex-shrink:0;}
+    .btn-back:hover{background:rgba(255,255,255,.22)}
+    .hd-ttl{flex:1;text-align:center;}
+    .hd-ttl .ttl{color:#fff;font-size:15px;font-weight:700;letter-spacing:-.3px}
+    .hd-ttl .sub{color:rgba(255,255,255,.55);font-size:11px;margin-top:2px}
+    .btn-trash{background:rgba(220,38,38,.2);border:1px solid rgba(220,38,38,.4);color:#fca5a5;
+                border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;flex-shrink:0;}
+    .btn-trash:hover{background:rgba(220,38,38,.35)}
+
+    .stat-bar{background:var(--blue);display:flex;}
+    .stat-item{flex:1;text-align:center;padding:10px 6px;color:#fff;font-size:11px;border-right:1px solid rgba(255,255,255,.15);}
+    .stat-item:last-child{border-right:none}
+    .stat-item .sv{font-size:19px;font-weight:800;color:#bfdbfe;display:block;margin-bottom:1px;}
+
+    .content{padding:10px;}
+
+    /* 날짜 헤더 */
+    .date-label{
+      font-size:12px;font-weight:700;color:#64748b;letter-spacing:.3px;
+      padding:8px 4px 6px;display:flex;align-items:center;gap:6px;
+    }
+    .date-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+    /* 로그 아이템 */
+    .log-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:8px;}
+    .log-row{
+      display:grid;
+      grid-template-columns:36px 1fr auto auto;
+      align-items:center;gap:0 10px;
+      padding:11px 14px;cursor:pointer;
+      transition:background .12s;
+    }
+    .log-row:hover{background:#f8fafc}
+    .log-row:active{background:#f1f5f9}
+
+    .log-avatar{
+      width:36px;height:36px;border-radius:50%;background:var(--blue-pale);
+      display:flex;align-items:center;justify-content:center;
+      font-size:15px;font-weight:800;color:var(--blue-mid);
+    }
+    .log-main{min-width:0;}
+    .log-name-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;}
+    .log-name{font-size:14px;font-weight:700;color:#1e293b;}
+    .log-cnt{background:#fef3c7;color:#92400e;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:700;}
+    .log-sub{display:flex;flex-wrap:wrap;gap:4px 10px;}
+    .log-sub span{font-size:12px;color:#64748b;display:flex;align-items:center;gap:3px;}
+    .log-sub i{font-size:10px;color:#94a3b8;}
+
+    .log-time{font-size:12px;color:#94a3b8;text-align:right;white-space:nowrap;}
+    .log-caret{font-size:11px;color:#cbd5e1;transition:transform .2s;padding-left:4px;}
+    .log-caret.open{transform:rotate(180deg)}
+
+    /* 펼쳐지는 방문기록 패널 */
+    .log-detail{display:none;background:#f8fafc;border-top:1px solid var(--border);padding:12px 14px;}
+    .detail-title{font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:8px;letter-spacing:.3px;}
+    .visit-row{display:flex;justify-content:space-between;align-items:center;
+               padding:6px 0;border-bottom:1px solid #eef0f3;font-size:13px;}
+    .visit-row:last-child{border-bottom:none}
+    .visit-date{color:#475569;font-weight:600;}
+    .visit-times{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;}
+    .time-chip{background:#fff;border:1px solid var(--border);border-radius:8px;padding:3px 9px;font-size:12px;color:#475569;font-weight:600;}
+
+    .no-log{text-align:center;padding:60px 20px;color:#94a3b8;}
+    .no-log i{font-size:44px;margin-bottom:14px;opacity:.35;display:block;}
+
+    .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:flex-end;justify-content:center;}
+    .confirm-sheet{background:#fff;border-radius:20px 20px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;}
+    .confirm-sheet h3{font-size:16px;font-weight:700;color:#1e293b;margin-bottom:8px;}
+    .confirm-sheet p{font-size:13px;color:#64748b;margin-bottom:20px;}
+    .confirm-btns{display:flex;gap:10px;}
+    .btn-cancel{flex:1;padding:12px;border:1.5px solid var(--border);border-radius:10px;background:#fff;font-size:14px;font-weight:600;cursor:pointer;}
+    .btn-del{flex:1;padding:12px;border:none;border-radius:10px;background:#dc2626;color:#fff;font-size:14px;font-weight:700;cursor:pointer;}
+  </style>
+</head>
+<body>
+
+<div class="hd">
+  <button class="btn-back" onclick="location.href='dashboard.html'">
+    <i class="fas fa-chevron-left"></i>
+  </button>
+  <div class="hd-ttl">
+    <div class="ttl"><i class="fas fa-chart-bar me-2"></i>로그 정보</div>
+    <div class="sub">조합원 로그인 기록</div>
+  </div>
+  <button class="btn-trash" onclick="showConfirm()">
+    <i class="fas fa-trash-can"></i>
+  </button>
+</div>
+
+<div class="stat-bar" id="stat-bar" style="display:none">
+  <div class="stat-item"><span class="sv" id="s-users">0</span>로그인 계정</div>
+  <div class="stat-item"><span class="sv" id="s-total">0</span>총 로그인</div>
+  <div class="stat-item"><span class="sv" id="s-days">0</span>이용일수</div>
+</div>
+
+<div class="content" id="log-list"></div>
+
+<div class="confirm-overlay" id="confirm-overlay" onclick="hideConfirm(event)">
+  <div class="confirm-sheet">
+    <h3><i class="fas fa-triangle-exclamation me-2" style="color:#f59e0b"></i>로그 전체 삭제</h3>
+    <p>모든 로그인 기록을 삭제합니다. 삭제 후에는 복구할 수 없습니다.</p>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="hideConfirm()">취소</button>
+      <button class="btn-del" onclick="clearLogs()">삭제</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+var session = requireSession('index.html');
+if (session && !session.isAdmin) location.href = 'dashboard.html';
+
+var TYPE_LABEL = {'59A':'25평','59B':'25평','73A':'30평','73B':'30평','73C':'30평','84A':'33평','84B':'33평','84C':'33평','120B':'46평'};
+
+function getMemberInfo(phone) {
+  var ms = MEMBERS.filter(function(m){ return m.phone === phone; });
+  if (!ms.length) return { pyeong: '', units: '' };
+  var pyeong = ms.map(function(m){ return (TYPE_LABEL[m.type] || m.type); }).filter(function(v,i,a){ return a.indexOf(v)===i; }).join(' / ');
+  var units  = ms.map(function(m){ return m.unit; }).join(' · ');
+  return { pyeong: pyeong, units: units };
+}
+
+// 사람별 전체 방문기록 구성 (phone 기준)
+function buildPersonHistory(logs) {
+  var map = {};
+  logs.forEach(function(l) {
+    if (!map[l.phone]) map[l.phone] = { name: l.name, phone: l.phone, visits: [] };
+    map[l.phone].visits.push({ date: l.date, times: l.times, count: l.count });
+  });
+  return map;
+}
+
+function toggleDetail(id) {
+  var el = document.getElementById(id);
+  var cr = document.getElementById('cr_' + id);
+  if (!el) return;
+  var open = el.style.display !== 'none';
+  el.style.display = open ? 'none' : 'block';
+  if (cr) cr.classList.toggle('open', !open);
+}
+
+function fmtDate(d) {
+  return d.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1년 $2월 $3일');
+}
+
+function render() {
+  var logs = getLogs();
+  var list = document.getElementById('log-list');
+
+  if (!logs || !logs.length) {
+    list.innerHTML = '<div class="no-log"><i class="fas fa-inbox"></i>로그인 기록이 없습니다.</div>';
+    return;
+  }
+
+  // 통계
+  var uniqueDays = {};
+  logs.forEach(function(l){ uniqueDays[l.date] = 1; });
+  document.getElementById('stat-bar').style.display = 'flex';
+  document.getElementById('s-users').textContent = logs.length;
+  document.getElementById('s-total').textContent = logs.reduce(function(s,l){ return s + l.count; }, 0);
+  document.getElementById('s-days').textContent = Object.keys(uniqueDays).length;
+
+  // 사람별 전체 방문기록 (클릭 시 상세용)
+  var personHistory = buildPersonHistory(logs);
+
+  // 날짜별 그룹
+  var byDate = {};
+  logs.forEach(function(l){
+    if (!byDate[l.date]) byDate[l.date] = [];
+    byDate[l.date].push(l);
+  });
+
+  var html = '';
+  var dates = Object.keys(byDate).sort(function(a,b){ return b.localeCompare(a); });
+
+  dates.forEach(function(date) {
+    var entries = byDate[date];
+    var dayCnt  = entries.reduce(function(s,e){ return s + e.count; }, 0);
+
+    html += '<div class="date-label">';
+    html += '<i class="fas fa-calendar-days" style="font-size:11px;color:#94a3b8"></i>';
+    html += fmtDate(date) + ' &nbsp;' + entries.length + '명 / ' + dayCnt + '회';
+    html += '</div>';
+
+    entries.forEach(function(e) {
+      var info    = getMemberInfo(e.phone);
+      var lastTime = e.times.length ? e.times[e.times.length - 1] : '';
+      var initial  = e.name ? e.name.charAt(0) : '?';
+      var hasMulti = e.count > 1;
+
+      // 이 사람의 전체 방문기록 (다른 날짜 포함)
+      var pHist = personHistory[e.phone] || { visits: [] };
+      var totalVisits = pHist.visits.reduce(function(s,v){ return s + v.count; }, 0);
+      var detailId = 'det_' + date.replace(/-/g,'') + '_' + e.phone.replace(/\D/g,'');
+
+      html += '<div class="log-card">';
+      html += '<div class="log-row" onclick="toggleDetail(\'' + detailId + '\')">';
+
+      // 아바타
+      html += '<div class="log-avatar">' + initial + '</div>';
+
+      // 이름 + 방문카운트 + 평형 + 동호수
+      html += '<div class="log-main">';
+      html += '<div class="log-name-row">';
+      html += '<span class="log-name">' + e.name + '</span>';
+      if (totalVisits > 1) {
+        html += '<span class="log-cnt"><i class="fas fa-arrow-right-to-bracket" style="font-size:9px;margin-right:2px"></i>' + totalVisits + '회</span>';
+      }
+      html += '</div>';
+      html += '<div class="log-sub">';
+      if (info.pyeong) html += '<span><i class="fas fa-expand"></i>' + info.pyeong + '</span>';
+      if (info.units)  html += '<span><i class="fas fa-building"></i>' + info.units  + '</span>';
+      html += '</div>';
+      html += '</div>';
+
+      // 마지막 방문 시간 + 캐럿
+      html += '<div class="log-time">' + lastTime + '</div>';
+      html += '<i class="fas fa-chevron-down log-caret" id="cr_' + detailId + '"></i>';
+      html += '</div>';
+
+      // 펼쳐지는 상세: 이 사람의 날짜별 전체 방문기록
+      html += '<div class="log-detail" id="' + detailId + '">';
+      html += '<div class="detail-title"><i class="fas fa-clock me-1"></i>' + e.name + ' 님의 전체 방문기록</div>';
+
+      var sortedVisits = pHist.visits.slice().sort(function(a,b){ return b.date.localeCompare(a.date); });
+      sortedVisits.forEach(function(v) {
+        html += '<div class="visit-row">';
+        html += '<span class="visit-date">' + fmtDate(v.date) + '</span>';
+        html += '<div class="visit-times">';
+        v.times.forEach(function(t, i) {
+          html += '<span class="time-chip">' + (i+1) + '차 ' + t + '</span>';
+        });
+        html += '</div></div>';
+      });
+
+      html += '</div>';
+      html += '</div>';
+    });
+  });
+
+  list.innerHTML = html;
+}
+
+function showConfirm() { document.getElementById('confirm-overlay').style.display = 'flex'; }
+function hideConfirm(e) {
+  if (!e || e.target === document.getElementById('confirm-overlay'))
+    document.getElementById('confirm-overlay').style.display = 'none';
+}
+function clearLogs() {
+  localStorage.removeItem('aptcal_logs');
+  hideConfirm();
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

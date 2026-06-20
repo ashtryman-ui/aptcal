@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>입주 현금 계산기</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="members.js"></script>
+  <style>
+    :root {
+      --navy:       #0d2b55;
+      --blue:       #1a56db;
+      --blue-mid:   #1c64f2;
+      --blue-pale:  #eff6ff;
+      --blue-bdr:   #bfdbfe;
+      --blue-txt:   #1e40af;
+      --text:       #1e293b;
+      --muted:      #64748b;
+      --hint:       #94a3b8;
+      --bg:         #f1f5f9;
+      --border:     #e2e8f0;
+      --red:        #dc2626;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+                   'Noto Sans KR', 'Malgun Gothic', sans-serif;
+      background: var(--bg); color: var(--text); font-size: 14px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* sticky wrapper */
+    .sticky-wrap { position: sticky; top: 0; z-index: 1030; }
+    .app-hd {
+      background: var(--navy); padding: 10px 12px;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .app-hd .ttl  { color: #fff; font-size: 16px; font-weight: 700; letter-spacing: -.3px; }
+    .app-hd .sub  { color: rgba(255,255,255,.55); font-size: 11px; margin-top: 2px; }
+    /* total bar */
+    .tot-bar {
+      background: var(--blue); padding: 9px 16px 10px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 3px 10px rgba(0,0,0,.22);
+    }
+    .tot-bar .tbl  { color: rgba(255,255,255,.72); font-size: 11px; margin-bottom: 1px; }
+    .tot-bar .tba  { color: #bfdbfe; font-size: 21px; font-weight: 800; letter-spacing: -.5px; line-height: 1.2; }
+    .tot-bar .tbi  { text-align: right; color: rgba(255,255,255,.62); font-size: 12px; line-height: 1.6; }
+    /* content */
+    .content { padding: 10px 10px 48px; }
+    /* card */
+    .cc { background: #fff; border-radius: 14px; margin-bottom: 10px;
+          box-shadow: 0 1px 5px rgba(0,0,0,.09); overflow: hidden; }
+    .cc-hd { background: var(--navy); color: #fff; padding: 10px 14px;
+              font-size: 13px; font-weight: 700; letter-spacing: -.2px; }
+    .cc-hd i { opacity: .85; width: 18px; }
+    /* field row */
+    .fr { display: flex; align-items: center; padding: 10px 14px;
+          border-bottom: 1px solid var(--border); gap: 8px; min-height: 48px; }
+    .fr:last-child { border-bottom: none; }
+    .fl { flex: 1; min-width: 0; font-size: 13px; color: var(--text); line-height: 1.4; }
+    .fl small { display: block; font-size: 11px; color: var(--hint); margin-top: 1px; }
+    /* info button */
+    .ibtn { display: inline-block; color: #93c5fd; font-size: 12px; margin-left: 4px;
+             cursor: pointer; background: none; border: none; padding: 0;
+             vertical-align: middle; line-height: 1; }
+    .ibtn:hover { color: var(--blue-mid); }
+    /* input wrap */
+    .fi { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    input[type="number"], input[type="text"], select {
+      border: 1.5px solid var(--border); border-radius: 8px; padding: 7px 10px;
+      font-size: 13px; background: #f8fafc; color: var(--text);
+      outline: none; -webkit-appearance: none; appearance: none;
+    }
+    input[type="number"] { text-align: right; width: 128px; }
+    input[type="text"]   { text-align: left;  width: 128px; }
+    select               { width: 128px; }
+    .wsm { width: 75px !important; }
+    input:focus, select:focus {
+      border-color: var(--blue-mid);
+      box-shadow: 0 0 0 3px rgba(28,100,242,.12); background: #fff;
+    }
+    input.auto {
+      background: var(--blue-pale) !important; border-color: var(--blue-bdr) !important;
+      color: var(--blue-txt) !important; font-weight: 700;
+    }
+    input.auto:focus { background: #fff !important; }
+    .unit { font-size: 12px; color: var(--hint); white-space: nowrap; }
+    /* result */
+    .fres { font-size: 14px; font-weight: 700; color: var(--blue-mid);
+             white-space: nowrap; text-align: right; }
+    .fres.red { color: var(--red); }
+    /* subtotal */
+    .stbar { background: var(--blue-pale); border-top: 1px solid var(--blue-bdr);
+              padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+    .stbar .stl { font-size: 13px; font-weight: 600; color: var(--blue-txt); }
+    .stbar .stv { font-size: 15px; font-weight: 800; color: var(--blue-mid); }
+    /* toggle */
+    .tg { display: flex; border-radius: 8px; overflow: hidden;
+           border: 1.5px solid var(--border); flex-shrink: 0; }
+    .tb { padding: 5px 14px; font-size: 12px; font-weight: 600; border: none;
+           background: #fff; color: var(--muted); cursor: pointer; transition: all .18s; }
+    .tb:not(:last-child) { border-right: 1.5px solid var(--border); }
+    .tb.on { background: var(--navy); color: #fff; }
+    /* collapse */
+    .sec { display: none; }
+    .sec.open { display: block; }
+    /* summary card */
+    .sc {
+      background: linear-gradient(135deg, #0d2b55 0%, #1a56db 100%);
+      border-radius: 14px; margin-bottom: 10px; padding: 20px 16px 18px;
+      color: #fff; box-shadow: 0 4px 18px rgba(13,43,85,.38);
+    }
+    .sc .scl  { font-size: 12px; opacity: .72; margin-bottom: 4px; }
+    .sc .sca  { font-size: 30px; font-weight: 800; color: #bfdbfe; letter-spacing: -1px; line-height: 1.1; }
+    .sc .scbr { margin-top: 16px; border-top: 1px solid rgba(255,255,255,.2); padding-top: 14px; }
+    .br  { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 7px; }
+    .br .bl { opacity: .75; }
+    .br .bv { font-weight: 600; }
+    .br .bv.neg { color: #fca5a5; }
+    .br.btot { border-top: 1px solid rgba(255,255,255,.2); padding-top: 10px; margin-top: 4px; margin-bottom: 0; }
+    .br.btot .bl { font-weight: 700; opacity: 1; }
+    .br.btot .bv { font-size: 15px; color: #bfdbfe; }
+    /* note */
+    .notebox { background: #fff; border-radius: 10px; padding: 12px 14px;
+                border-left: 4px solid var(--blue-bdr); font-size: 11.5px;
+                color: var(--muted); line-height: 1.75;
+                box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    /* popover */
+    .popover { font-size: 12px; max-width: 230px; }
+    .popover-header { background: var(--blue-pale); font-size: 12px; font-weight: 700; color: var(--blue-txt); }
+    .popover-body   { color: var(--text); line-height: 1.6; }
+  </style>
+</head>
+<body>
+
+<!-- sticky header + total bar -->
+<div class="sticky-wrap">
+  <div class="app-hd">
+    <button onclick="goBack()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    <div style="flex:1;text-align:center">
+      <div class="ttl" id="calc-unit-title">입주 현금 계산기</div>
+      <div class="sub" id="calc-unit-sub">재건축·재개발 조합원</div>
+    </div>
+    <button onclick="saveData()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;">
+      <i class="fas fa-floppy-disk"></i>저장
+    </button>
+  </div>
+  <div class="tot-bar">
+    <div>
+      <div class="tbl">입주시 실제 필요한 현금 (A)</div>
+      <div class="tba" id="top-total">계산 중…</div>
+    </div>
+    <div class="tbi">
+      <div id="top-name">&nbsp;</div>
+      <div id="top-unit">&nbsp;</div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- 기본 정보 -->
+<div class="cc">
+  <div class="cc-hd"><i class="fas fa-id-card me-2"></i>기본 정보</div>
+
+  <div class="fr">
+    <div class="fl">이름
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="이름" data-bs-content="조합원 본인의 성함을 입력하세요.">
+        <i class="fas fa-circle-info"></i></button>
+    </div>
+    <div class="fi"><input type="text" id="f-name" placeholder="이름을 입력해주세요" oninput="onName()"></div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">동호수
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="동호수" data-bs-content="입주 예정 아파트의 동·호수를 입력하세요.">
+        <i class="fas fa-circle-info"></i></button>
+    </div>
+    <div class="fi"><input type="text" id="f-unit" placeholder="예) 101동 1201호" oninput="onUnit()"></div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">평형 타입
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="평형 타입"
+        data-bs-content="조합원 배정 타입을 선택하면 공급면적과 추가분담금(평당 1,055만원)이 자동으로 입력됩니다.">
+        <i class="fas fa-circle-info"></i></button>
+    </div>
+    <div class="fi">
+      <select id="f-type" onchange="onTypeChange()">
+        <option value="">선택</option>
+        <option value="59A">59A (25평)</option>
+        <option value="59B">59B (25평)</option>
+        <option value="73A">73A (30평)</option>
+        <option value="73B">73B (30평)</option>
+        <option value="73C">73C (30평)</option>
+        <option value="84A">84A (33평)</option>
+        <option value="84B">84B (33평)</option>
+        <option value="84C">84C (33평)</option>
+        <option value="120B">120B (46평)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">공급면적
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="공급면적" data-bs-content="아파트 공급면적(㎡)입니다. 타입 선택 시 자동으로 입력됩니다.">
+        <i class="fas fa-circle-info"></i></button>
+      <small>타입 선택 시 자동입력</small>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-area" class="wsm" placeholder="타입 선택 시 자동 입력" oninput="calc()">
+      <span class="unit">㎡</span>
+    </div>
+  </div>
+</div>
+
+<!-- 권리가액 -->
+<div class="cc">
+  <div class="cc-hd"><i class="fas fa-scale-balanced me-2"></i>권리가액 계산</div>
+
+  <div class="fr">
+    <div class="fl">조합원 분양가
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="조합원 분양가"
+        data-bs-content="조합이 고지한 배정 아파트의 분양가격입니다. 조합 고지서를 확인하세요.">
+        <i class="fas fa-circle-info"></i></button>
+      <small>조합 고지 금액</small>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-member-price" placeholder="조합원분양가 (원)" oninput="calc()">
+      <span class="unit">원</span>
+    </div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">감정평가액
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="감정평가액"
+        data-bs-content="재건축 전 소유 부동산(토지·건물)에 대한 감정평가 금액입니다. 종전 자산 평가액이라고도 합니다.">
+        <i class="fas fa-circle-info"></i></button>
+      <small>종전 자산 평가액</small>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-appraised" placeholder="감정평가액 (원)" oninput="calc()">
+      <span class="unit">원</span>
+    </div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">비례율
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="비례율"
+        data-bs-content="재건축 사업성 지표로 조합에서 고지합니다. 비례율 × 감정평가액 = 권리가액. 100% 초과 시 사업성이 양호한 것입니다.">
+        <i class="fas fa-circle-info"></i></button>
+      <small>조합 고지 기준</small>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-ratio" class="wsm" placeholder="비례율 (%)" oninput="calc()">
+      <span class="unit">%</span>
+    </div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">권리가액
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="권리가액"
+        data-bs-content="감정평가액 × 비례율로 자동 계산됩니다. 조합에 기여한 종전 자산 가치를 사업 기준으로 환산한 금액입니다.">
+        <i class="fas fa-circle-info"></i></button>
+      <small>감정평가액 × 비례율</small>
+    </div>
+    <div class="fres" id="r-rights">—</div>
+  </div>
+</div>
+
+<!-- 추가분담금 -->
+<div class="cc">
+  <div class="cc-hd"><i class="fas fa-receipt me-2"></i>추가분담금</div>
+
+  <div class="fr">
+    <div class="fl">최종 추가분담금
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="최종 추가분담금"
+        data-bs-content="조합에서 고지한 최종 추가분담금을 입력하세요.">
+        <i class="fas fa-circle-info"></i></button>
+      <small id="burden-note">조합 고지서에서 확인한 금액을 입력하세요</small>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-burden" placeholder="조합 고지서의 추가분담금을 입력해주세요" oninput="onBurden()">
+      <span class="unit">원</span>
+    </div>
+  </div>
+</div>
+
+<!-- 유상 옵션 -->
+<div class="cc">
+  <div class="cc-hd"><i class="fas fa-house me-2"></i>유상 옵션비</div>
+
+  <div class="fr">
+    <div class="fl">발코니 확장
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="발코니 확장"
+        data-bs-content="발코니 확장 옵션 선택 시 납부하는 추가 금액입니다. 잔금 납부 시 함께 납부합니다.">
+        <i class="fas fa-circle-info"></i></button>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-balcony" placeholder="국민주택채권 매입액을 입력해주세요" oninput="calc()">
+      <span class="unit">원</span>
+    </div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">중문
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="중문" data-bs-content="중문 설치 옵션 선택 시 납부하는 추가 금액입니다.">
+        <i class="fas fa-circle-info"></i></button>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-door" placeholder="국민주택채권 매입액을 입력해주세요" oninput="calc()">
+      <span class="unit">원</span>
+    </div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">시스템 에어컨
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="시스템 에어컨"
+        data-bs-content="시스템 에어컨 설치 옵션 선택 시 납부하는 추가 금액입니다.">
+        <i class="fas fa-circle-info"></i></button>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-aircon" placeholder="국민주택채권 매입액을 입력해주세요" oninput="calc()">
+      <span class="unit">원</span>
+    </div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">기타 옵션
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="기타 옵션" data-bs-content="그 외 선택한 옵션의 총 금액을 입력하세요.">
+        <i class="fas fa-circle-info"></i></button>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-opt-etc" placeholder="0" oninput="calc()">
+      <span class="unit">원</span>
+    </div>
+  </div>
+
+  <div class="stbar">
+    <span class="stl"><i class="fas fa-equals me-1"></i>옵션비 합계</span>
+    <span class="stv" id="st-option">—</span>
+  </div>
+</div>
+
+<!-- 취득세 및 등기비 -->
+<div class="cc">
+  <div class="cc-hd"><i class="fas fa-landmark me-2"></i>취득세 및 등기비</div>
+
+  <div class="fr">
+    <div class="fl">취득세 (지방교육세 포함)
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="취득세"
+        data-bs-content="취득가액 기준 자동계산됩니다. ① 6억 이하: 1.1% ② 6~9억: 구간별 세율 ③ 9억 초과: 3.3% (지방교육세 포함) 실제 고지서와 대조 후 수정하세요.">
+        <i class="fas fa-circle-info"></i></button>
+      <small id="tax-rate-note">분양가 입력 후 표시</small>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-acq-tax" class="auto" placeholder="자동" oninput="onAcqTaxInput()">
+      <span class="unit">원</span>
+    </div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">인지세
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="인지세"
+        data-bs-content="분양가 기준 자동계산됩니다. 1억~10억: 15만원 / 10억 초과: 35만원. 분양가 입력 시 자동 반영.">
+        <i class="fas fa-circle-info"></i></button>
+      <small id="stamp-note">분양가 입력 후 자동계산</small>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-stamp" class="auto" placeholder="자동" oninput="onStampInput()">
+      <span class="unit">원</span>
+    </div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">국민주택채권 (실부담)
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="국민주택채권"
+        data-bs-content="등기 시 의무 매입 채권입니다. 즉시 매도 시 할인된 실부담액만 납부합니다. 법무사 또는 은행에 문의하세요.">
+        <i class="fas fa-circle-info"></i></button>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-bond" placeholder="국민주택채권 매입액을 입력해주세요" oninput="calc()">
+      <span class="unit">원</span>
+    </div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">법무사 수수료
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="법무사 수수료"
+        data-bs-content="분양가 기준으로 자동계산되는 참고값입니다. 법무사별로 실제 금액이 다를 수 있으므로 고지서 수령 후 확인하세요.">
+        <i class="fas fa-circle-info"></i></button>
+      <small id="legal-note">분양가 입력 후 자동계산</small>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-legal" class="auto" placeholder="자동" oninput="onLegalInput()">
+      <span class="unit">원</span>
+    </div>
+  </div>
+
+  <div class="stbar">
+    <span class="stl"><i class="fas fa-equals me-1"></i>취득세·등기비 합계</span>
+    <span class="stv" id="st-tax">—</span>
+  </div>
+</div>
+
+<!-- 이주비 대출 -->
+<div class="cc">
+  <div class="cc-hd"><i class="fas fa-truck me-2"></i>이주비 대출</div>
+
+  <div class="fr">
+    <div class="fl">이주비 대출 받으셨나요?
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="이주비 대출"
+        data-bs-content="재건축 추진 시 이주를 위해 지원받은 대출입니다. 잔금 납부 시 상환하거나 주택담보대출로 전환합니다.">
+        <i class="fas fa-circle-info"></i></button>
+    </div>
+    <div class="tg">
+      <button class="tb" id="tb-mov-y" onclick="setMovLoan(true)">예</button>
+      <button class="tb on" id="tb-mov-n" onclick="setMovLoan(false)">아니오</button>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-moving-loan">
+    <div class="fr">
+      <div class="fl">이주비 대출금
+        <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+          data-bs-title="이주비 대출금" data-bs-content="이주 시 받은 총 대출금액을 입력하세요.">
+          <i class="fas fa-circle-info"></i></button>
+        <small>받으신 총 대출금</small>
+      </div>
+      <div class="fi">
+        <input type="number" id="f-mov-loan" placeholder="0" oninput="calc()">
+        <span class="unit">원</span>
+      </div>
+    </div>
+
+    <div class="fr">
+      <div class="fl">무이자 여부
+        <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+          data-bs-title="무이자 여부"
+          data-bs-content="이주비 대출이 무이자이면 이자 부담이 없습니다. 유이자인 경우 아래에 실제 납부 이자를 입력하세요.">
+          <i class="fas fa-circle-info"></i></button>
+      </div>
+      <div class="tg">
+        <button class="tb" id="tb-zi-y" onclick="setZeroInt(true)">무이자</button>
+        <button class="tb on" id="tb-zi-n" onclick="setZeroInt(false)">유이자</button>
+      </div>
+    </div>
+
+    <div class="sec" id="sec-mov-int">
+      <div class="fr">
+        <div class="fl">이주비 이자 납부액
+          <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+            data-bs-title="이주비 이자"
+            data-bs-content="이주비 대출 기간 동안 납부한 총 이자금액입니다. 입주 시 현금 지출에 포함됩니다.">
+            <i class="fas fa-circle-info"></i></button>
+        </div>
+        <div class="fi">
+          <input type="number" id="f-mov-int" placeholder="0" oninput="calc()">
+          <span class="unit">원</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 기타 입주 비용 -->
+<div class="cc">
+  <div class="cc-hd"><i class="fas fa-boxes-stacked me-2"></i>기타 입주 비용</div>
+
+  <div class="fr">
+    <div class="fl">선수 관리비
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="선수 관리비"
+        data-bs-content="입주 초기 관리비 예치금입니다. 통상 2~3개월분을 예치하며, 퇴거 시 정산 후 반환됩니다.">
+        <i class="fas fa-circle-info"></i></button>
+      <small>입주 초기 관리비 예치금</small>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-mgmt" placeholder="선수 관리비를 입력해주세요" oninput="calc()">
+      <span class="unit">원</span>
+    </div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">이사 비용
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="이사 비용"
+        data-bs-content="이삿짐센터, 사다리차 이용 비용입니다. 이삿짐 양과 거리에 따라 통상 100~200만원 수준입니다.">
+        <i class="fas fa-circle-info"></i></button>
+      <small>이삿짐센터, 사다리차</small>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-move" placeholder="이사비를 입력해주세요" oninput="calc()">
+      <span class="unit">원</span>
+    </div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">기타 입주 부대비
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="기타 입주 부대비"
+        data-bs-content="입주 청소, 도배, 줄눈 시공, 가전·가구 구입 등 입주 초기 필요한 기타 비용입니다.">
+        <i class="fas fa-circle-info"></i></button>
+      <small>청소·도배·줄눈·가전·가구 등</small>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-misc" placeholder="기타 비용을 입력해주세요" oninput="calc()">
+      <span class="unit">원</span>
+    </div>
+  </div>
+</div>
+
+<!-- 중도금 대출 -->
+<div class="cc">
+  <div class="cc-hd"><i class="fas fa-credit-card me-2"></i>중도금 대출 (B)</div>
+
+  <div class="fr">
+    <div class="fl">중도금 대출 받으셨나요?
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="중도금 대출"
+        data-bs-content="분양 대금 중 중도금을 대출로 납부한 경우입니다. 잔금 시 상환하거나 주택담보대출로 전환합니다.">
+        <i class="fas fa-circle-info"></i></button>
+    </div>
+    <div class="tg">
+      <button class="tb" id="tb-mid-y" onclick="setMidLoan(true)">예</button>
+      <button class="tb on" id="tb-mid-n" onclick="setMidLoan(false)">아니오</button>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-mid-loan">
+    <div class="fr">
+      <div class="fl">중도금 총액
+        <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+          data-bs-title="중도금 총액" data-bs-content="분양 대금 중 중도금으로 납부한 총 금액입니다.">
+          <i class="fas fa-circle-info"></i></button>
+        <small>대출 받은 중도금 전체</small>
+      </div>
+      <div class="fi">
+        <input type="number" id="f-mid-total" placeholder="중도금 대출 총액 (원)" oninput="calc()">
+        <span class="unit">원</span>
+      </div>
+    </div>
+
+    <div class="fr">
+      <div class="fl">중도금 자납 금액
+        <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+          data-bs-title="중도금 자납 금액"
+          data-bs-content="중도금 중 본인이 직접 현금으로 납부한 금액입니다.">
+          <i class="fas fa-circle-info"></i></button>
+        <small>직접 현금 납부한 금액</small>
+      </div>
+      <div class="fi">
+        <input type="number" id="f-mid-self" placeholder="0" oninput="calc()">
+        <span class="unit">원</span>
+      </div>
+    </div>
+
+    <div class="fr">
+      <div class="fl">총 대출 잔액
+        <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+          data-bs-title="총 대출 잔액"
+          data-bs-content="잔금 납부 시 상환해야 할 중도금 대출 잔액입니다. 담보대출 전환 시 이 금액이 주택담보대출 원금이 됩니다.">
+          <i class="fas fa-circle-info"></i></button>
+        <small>잔금 시 상환 필요 금액</small>
+      </div>
+      <div class="fi">
+        <input type="number" id="f-mid-loan" placeholder="0" oninput="calc()">
+        <span class="unit">원</span>
+      </div>
+    </div>
+
+    <div class="fr">
+      <div class="fl">연이율
+        <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+          data-bs-title="중도금 연이율"
+          data-bs-content="중도금 대출에 적용된 연간 이자율(%)입니다. 대출 계약서에서 확인하세요.">
+          <i class="fas fa-circle-info"></i></button>
+      </div>
+      <div class="fi">
+        <input type="number" id="f-mid-rate" class="wsm" placeholder="이율 (%)" oninput="calc()">
+        <span class="unit">%</span>
+      </div>
+    </div>
+
+    <div class="fr">
+      <div class="fl">대출 기간
+        <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+          data-bs-title="대출 기간" data-bs-content="중도금 대출을 이용한 총 기간(개월)입니다.">
+          <i class="fas fa-circle-info"></i></button>
+      </div>
+      <div class="fi">
+        <input type="number" id="f-mid-months" class="wsm" placeholder="개월수" oninput="calc()">
+        <span class="unit">개월</span>
+      </div>
+    </div>
+
+    <div class="fr">
+      <div class="fl">예상 이자 (참고)
+        <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+          data-bs-title="이자 추정"
+          data-bs-content="총대출잔액 × 연이율 ÷ 12 × 기간으로 단순 계산한 참고값입니다. 실납부액을 아래에 직접 입력하세요.">
+          <i class="fas fa-circle-info"></i></button>
+      </div>
+      <div class="fres" id="r-mid-int">—</div>
+    </div>
+
+    <div class="fr">
+      <div class="fl">중도금 이자 실납부액
+        <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+          data-bs-title="중도금 이자 실납부액"
+          data-bs-content="실제 납부하는(예정인) 중도금 이자 총액입니다. 이 금액이 필요 현금에 포함됩니다.">
+          <i class="fas fa-circle-info"></i></button>
+        <small>실제 납부 이자 금액</small>
+      </div>
+      <div class="fi">
+        <input type="number" id="f-mid-int-pay" placeholder="0" oninput="calc()">
+        <span class="unit">원</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 잔금 담보대출 -->
+<div class="cc">
+  <div class="cc-hd"><i class="fas fa-house-chimney me-2"></i>잔금 담보대출</div>
+
+  <div class="fr">
+    <div class="fl">잔금 담보대출 예정인가요?
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="잔금 담보대출"
+        data-bs-content="잔금 납부 시 활용할 주택담보대출입니다. 대출금액만큼 직접 준비해야 할 현금이 줄어듭니다.">
+        <i class="fas fa-circle-info"></i></button>
+    </div>
+    <div class="tg">
+      <button class="tb" id="tb-mtg-y" onclick="setMortgage(true)">예</button>
+      <button class="tb on" id="tb-mtg-n" onclick="setMortgage(false)">아니오</button>
+    </div>
+  </div>
+
+  <div class="sec" id="sec-mortgage">
+    <div class="fr">
+      <div class="fl">담보대출 예정금액
+        <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+          data-bs-title="담보대출 예정금액"
+          data-bs-content="잔금 중 주택담보대출로 충당할 예정 금액입니다. 이 금액만큼 직접 준비할 현금이 줄어듭니다.">
+          <i class="fas fa-circle-info"></i></button>
+        <small>잔금 중 대출로 충당할 금액</small>
+      </div>
+      <div class="fi">
+        <input type="number" id="f-mtg" placeholder="0" oninput="calc()">
+        <span class="unit">원</span>
+      </div>
+    </div>
+
+    <div class="fr">
+      <div class="fl">담보대출 차감
+        <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+          data-bs-title="담보대출 차감"
+          data-bs-content="담보대출 금액만큼 실제 필요한 현금에서 차감됩니다.">
+          <i class="fas fa-circle-info"></i></button>
+        <small>필요 현금에서 차감</small>
+      </div>
+      <div class="fres red" id="r-mtg-ded">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- 최종 합계 -->
+<div class="sc">
+  <div class="scl">입주시 실제 필요한 현금 (A)</div>
+  <div class="sca" id="total-big">—</div>
+  <div class="scbr">
+    <div class="br"><span class="bl">추가분담금</span>    <span class="bv" id="b-burden">—</span></div>
+    <div class="br"><span class="bl">유상 옵션비</span>   <span class="bv" id="b-option">—</span></div>
+    <div class="br"><span class="bl">취득세·등기비</span> <span class="bv" id="b-tax">—</span></div>
+    <div class="br"><span class="bl">선수 관리비</span>   <span class="bv" id="b-mgmt">—</span></div>
+    <div class="br"><span class="bl">이주비 이자</span>   <span class="bv" id="b-mov-int">—</span></div>
+    <div class="br"><span class="bl">이사·부대비</span>   <span class="bv" id="b-misc">—</span></div>
+    <div class="br" id="b-mid-row" style="display:none">
+      <span class="bl">중도금 이자</span><span class="bv" id="b-mid-int">—</span>
+    </div>
+    <div class="br" id="b-mtg-row" style="display:none">
+      <span class="bl">담보대출 차감</span><span class="bv neg" id="b-mtg">—</span>
+    </div>
+    <div class="br btot">
+      <span class="bl">= 실제 필요한 현금 (A)</span>
+      <span class="bv" id="b-total">—</span>
+    </div>
+  </div>
+</div>
+
+<!-- 주의사항 -->
+<div class="notebox">
+  <i class="fas fa-triangle-exclamation text-warning me-1"></i>
+  취득세율: 6억 이하 1.1% / 6~9억 구간별 / 9억 초과 3.3% (지방교육세 포함)<br>
+  <i class="fas fa-triangle-exclamation text-warning me-1"></i>
+  취득세 자동계산 후 실제 고지서와 대조하여 수정하세요.<br>
+  <i class="fas fa-triangle-exclamation text-warning me-1"></i>
+  본 계산기는 참고용이며 실제 금액과 차이가 있을 수 있습니다.
+</div>
+
+</div><!-- /content -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const TYPE_DATA = {
+  '59A':  { area: 80.49,  pyeong: 25 },
+  '59B':  { area: 84.07,  pyeong: 25 },
+  '73A':  { area: 97.46,  pyeong: 30 },
+  '73B':  { area: 99.49,  pyeong: 30 },
+  '73C':  { area: 96.35,  pyeong: 30 },
+  '84A':  { area: 108.95, pyeong: 33 },
+  '84B':  { area: 110.82, pyeong: 33 },
+  '84C':  { area: 109.01, pyeong: 33 },
+  '120B': { area: 152.31, pyeong: 46 },
+};
+const PPP = 10550000; // 평당 1,055만원
+
+let manualBurden = false, typeBurden = false, currentType = '';
+let manualAcqTax = false;
+let movLoanOn = false, zeroIntOn = false, midLoanOn = false, mortgageOn = false;
+
+const $  = id => document.getElementById(id);
+const nv = (id, def=0) => { const v=parseFloat($(id).value); return isNaN(v)?def:v; };
+
+function fmt(v) {
+  if (v==null||isNaN(v)) return '—';
+  return (v<0?'-':'')+Math.abs(Math.round(v)).toLocaleString('ko-KR')+'원';
+}
+function fmtS(v) {
+  if (!v&&v!==0) return '—';
+  const a=Math.round(Math.abs(v)), s=v<0?'-':'';
+  if (a>=1e8){ const e=Math.floor(a/1e8),m=Math.round((a%1e8)/1e4); return s+(m>0?`${e}억 ${m.toLocaleString()}만원`:`${e}억원`); }
+  if (a>=1e4) return s+Math.round(a/1e4).toLocaleString()+'만원';
+  return fmt(v);
+}
+
+// ── 인지세 자동계산 (부동산 매매계약서 기준) ──────────────────
+function calcStampDuty(price) {
+  if (!price || price <= 10000000)  return { tax: 0,       note: '1천만원 이하 비과세' };
+  if (price <= 30000000)  return { tax: 20000,   note: '3천만원 이하 → 2만원' };
+  if (price <= 50000000)  return { tax: 40000,   note: '5천만원 이하 → 4만원' };
+  if (price <= 100000000) return { tax: 70000,   note: '1억원 이하 → 7만원' };
+  if (price <= 1000000000) return { tax: 150000, note: '10억원 이하 → 15만원' };
+  return { tax: 350000, note: '10억원 초과 → 35만원' };
+}
+
+// ── 법무사 수수료 자동계산 (소유권이전등기 기준 참고값) ───────
+function calcLegalFee(price) {
+  if (!price) return { fee: 0, note: '분양가 입력 후 표시' };
+  let fee;
+  if (price <= 100000000)        fee = Math.max(150000, Math.round(price * 0.004));
+  else if (price <= 500000000)   fee = 400000 + Math.round((price - 100000000) * 0.002);
+  else                             fee = 1200000 + Math.round((price - 500000000) * 0.0002);
+  fee = Math.min(fee, 1500000);  // 최대 150만원
+  const vat = Math.round(fee * 0.1);
+  return { fee: fee + vat, note: `보수 ${fee.toLocaleString()}원 + 부가세 ${vat.toLocaleString()}원 (참고값)` };
+}
+
+function acqTax(p) {
+  if (!p) return null;
+  let r,n;
+  if (p<=6e8)      { r=0.011; n='6억 이하 → 1.1% (취득세 1% + 지방교육세 0.1%)'; }
+  else if (p<=9e8) { const b=(p/1e8*2-3)/100; r=b*1.1; n=`6~9억 구간 → 취득세 ${(b*100).toFixed(2)}% + 지방교육세`; }
+  else             { r=0.033; n='9억 초과 → 3.3% (취득세 3% + 지방교육세 0.3%)'; }
+  return { tax: Math.round(p*r), note: n };
+}
+
+function onName() { $('top-name').textContent=$('f-name').value||' '; }
+function onUnit() { $('top-unit').textContent=$('f-unit').value||' '; }
+
+function onTypeChange() {
+  const t=$('f-type').value; currentType=t;
+  if (t&&TYPE_DATA[t]) {
+    const {area,pyeong}=TYPE_DATA[t];
+    $('f-area').value=area;
+    typeBurden=false; manualBurden=false;
+  } else {
+    currentType=''; typeBurden=false;
+    $('f-area').value='';
+    $('burden-note').textContent='조합 고지서에서 확인한 금액을 입력하세요';
+  }
+  calc();
+}
+
+function onBurden() {
+  manualBurden=$('f-burden').value!==''; typeBurden=false;
+  if (currentType&&TYPE_DATA[currentType])
+    $('burden-note').textContent=`${TYPE_DATA[currentType].pyeong}평 기준 · 수동 입력으로 변경됨`;
+  calc();
+}
+let manualStamp = false, manualLegal = false;
+function onStampInput() { manualStamp = true; calc(); }
+function onLegalInput() { manualLegal = true; calc(); }
+
+
+function onAcqTaxInput() { manualAcqTax=true; calc(); }
+
+function setMovLoan(v){ movLoanOn=v; $('tb-mov-y').classList.toggle('on',v); $('tb-mov-n').classList.toggle('on',!v); $('sec-moving-loan').classList.toggle('open',v); calc(); }
+function setZeroInt(v){ zeroIntOn=v; $('tb-zi-y').classList.toggle('on',v); $('tb-zi-n').classList.toggle('on',!v); $('sec-mov-int').classList.toggle('open',!v); calc(); }
+function setMidLoan(v){ midLoanOn=v; $('tb-mid-y').classList.toggle('on',v); $('tb-mid-n').classList.toggle('on',!v); $('sec-mid-loan').classList.toggle('open',v); $('b-mid-row').style.display=v?'':'none'; calc(); }
+function setMortgage(v){ mortgageOn=v; $('tb-mtg-y').classList.toggle('on',v); $('tb-mtg-n').classList.toggle('on',!v); $('sec-mortgage').classList.toggle('open',v); $('b-mtg-row').style.display=v?'':'none'; calc(); }
+
+function calc() {
+  try {
+  const mp=nv('f-member-price'), ap=nv('f-appraised'), ra=nv('f-ratio');
+  const rights=ap*(ra/100);
+  $('r-rights').textContent=fmt(rights);
+
+  if (!manualBurden) {
+    if (typeBurden&&currentType&&TYPE_DATA[currentType])
+      $('f-burden').value=TYPE_DATA[currentType].pyeong*PPP;
+    else if (!typeBurden&&mp&&ap&&ra)
+      $('f-burden').value=Math.round(Math.max(0,mp-rights));
+  }
+  const burden=nv('f-burden');
+
+  if (!manualAcqTax&&mp) {
+    const r=acqTax(mp); if(r){$('f-acq-tax').value=r.tax;$('tax-rate-note').textContent=r.note;}
+  } else if (!mp&&!manualAcqTax) $('tax-rate-note').textContent='분양가 입력 후 표시';
+
+  // 인지세 자동계산
+  if (!manualStamp && mp) {
+    const sd = calcStampDuty(mp);
+    $('f-stamp').value = sd.tax;
+    const sn = document.getElementById('stamp-note');
+    if (sn) sn.textContent = sd.note;
+  } else if (!mp && !manualStamp) {
+    $('f-stamp').value = '';
+    const sn = document.getElementById('stamp-note');
+    if (sn) sn.textContent = '분양가 입력 후 자동계산';
+  }
+  // 법무사 수수료 자동계산
+  if (!manualLegal && mp) {
+    const lf2 = calcLegalFee(mp);
+    $('f-legal').value = lf2.fee;
+    const ln = document.getElementById('legal-note');
+    if (ln) ln.textContent = lf2.note;
+  } else if (!mp && !manualLegal) {
+    $('f-legal').value = '';
+    const ln = document.getElementById('legal-note');
+    if (ln) ln.textContent = '분양가 입력 후 자동계산';
+  }
+  const at=nv('f-acq-tax'), st=nv('f-stamp'), bn=nv('f-bond'), lf=nv('f-legal');
+  const taxT=at+st+bn+lf;
+  $('st-tax').textContent=fmt(taxT);
+
+  const optT=nv('f-balcony')+nv('f-door')+nv('f-aircon')+nv('f-opt-etc');
+  $('st-option').textContent=fmt(optT);
+
+  const mgmt=nv('f-mgmt'), move=nv('f-move'), misc=nv('f-misc');
+  let movInt=0; if(movLoanOn&&!zeroIntOn) movInt=nv('f-mov-int');
+  let midP=0;
+  if(midLoanOn){
+    const ml=nv('f-mid-loan'),mr=nv('f-mid-rate')/100,mm=nv('f-mid-months');
+    $('r-mid-int').textContent=(ml&&mr&&mm)?fmt(ml*mr/12*mm):'—';
+    midP=nv('f-mid-int-pay');
+  }
+  let mtg=0; if(mortgageOn){mtg=nv('f-mtg');$('r-mtg-ded').textContent=mtg?'-'+fmt(mtg):'—';}
+
+  const tot=burden+optT+taxT+mgmt+movInt+midP+move+misc-mtg;
+  $('top-total').textContent=fmtS(tot);
+  _currentTotal=tot;
+  $('total-big').textContent=fmt(tot);
+  $('b-burden').textContent=fmt(burden);
+  $('b-option').textContent=fmt(optT);
+  $('b-tax').textContent=fmt(taxT);
+  $('b-mgmt').textContent=fmt(mgmt);
+  $('b-mov-int').textContent=fmt(movInt);
+  $('b-misc').textContent=fmt(move+misc);
+  $('b-mid-int').textContent=fmt(midP);
+  $('b-mtg').textContent=mtg?'-'+fmt(mtg):'—';
+  $('b-total').textContent=fmt(tot);
+  } catch(e) { console.error('calc error:', e); }
+}
+
+
+// ── URL 파라미터 ─────────────────────────────────────────────
+const _params  = new URLSearchParams(location.search);
+const _UNIT    = _params.get('unit')  || '';
+var   _sess    = null;   // IIFE에서 할당, loadData에서 참조
+const _TPARAM  = _params.get('type')  || '';
+let _currentTotal = 0;
+
+// ── 뒤로가기 ─────────────────────────────────────────────────
+function goBack() { location.href = 'dashboard.html'; }
+
+// ── 저장 토스트 ──────────────────────────────────────────────
+function showSaveToast(msg) {
+  const el = document.getElementById('save-toast');
+  document.getElementById('save-toast-msg').textContent = msg || '저장되었습니다';
+  el.style.display = 'flex';
+  clearTimeout(el._tid);
+  el._tid = setTimeout(() => { el.style.display = 'none'; }, 2500);
+}
+
+// ── 현재 입력값 수집 ─────────────────────────────────────────
+const INPUT_IDS = [
+  'f-member-price','f-appraised','f-ratio','f-burden',
+  'f-balcony','f-door','f-aircon','f-opt-etc',
+  'f-acq-tax','f-stamp','f-bond','f-legal',
+  'f-mgmt','f-move','f-misc',
+  'f-mov-loan','f-mov-int',
+  'f-mid-total','f-mid-self','f-mid-loan','f-mid-rate','f-mid-months','f-mid-int-pay',
+  'f-mtg'
+];
+
+function gatherInputs() {
+  const inp = {};
+  INPUT_IDS.forEach(id => { const el = document.getElementById(id); if (el) inp[id] = el.value; });
+  return inp;
+}
+
+// ── 데이터 저장 ──────────────────────────────────────────────
+function saveData() {
+  if (!_UNIT) { showSaveToast('동호수 정보가 없습니다'); return; }
+  const data = {
+    type: (document.getElementById('f-type') || {}).value || _TPARAM,
+    inputs: gatherInputs(),
+    toggles: { movLoanOn, zeroIntOn, midLoanOn, mortgageOn },
+    total: _currentTotal,
+    manualBurden, manualAcqTax,
+  };
+  setCalcData(_UNIT, data);
+  showSaveToast(_UNIT + ' 저장 완료');
+}
+
+// ── 데이터 불러오기 ──────────────────────────────────────────
+function loadData(data) {
+  if (!data) return;
+  // 기본정보: 이름·동호수는 세션/URL 값 우선
+  const nameEl = document.getElementById('f-name');
+  const unitEl = document.getElementById('f-unit');
+  if (nameEl && !nameEl.value && _sess && _sess.name) nameEl.value = _sess.name;
+  if (unitEl && !unitEl.value && _UNIT) unitEl.value = _UNIT;
+  const sel = document.getElementById('f-type');
+  if (data.type && sel) {
+    sel.value = data.type;
+    onTypeChange();   // type 설정 후 area/burden 자동계산
+  }
+  // 저장된 개별 값으로 덮어쓰기
+  const inp = data.inputs || {};
+  INPUT_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && inp[id] !== undefined) el.value = inp[id];
+  });
+  // manualBurden/manualAcqTax 복원 (저장값 우선)
+  if (data.manualBurden !== undefined) manualBurden = data.manualBurden;
+  if (data.manualAcqTax !== undefined) manualAcqTax  = data.manualAcqTax;
+  // 토글 복원
+  const t = data.toggles || {};
+  if (t.movLoanOn)  setMovLoan(true);
+  if (t.zeroIntOn)  setZeroInt(true);
+  if (t.midLoanOn)  setMidLoan(true);
+  if (t.mortgageOn) setMortgage(true);
+  calc();
+}
+
+// ── calc() 후 total 캡처 ─────────────────────────────────────
+// 기존 calc() 실행 후 tot-bar 값을 읽어 _currentTotal 갱신
+
+
+(function init(){
+  // 기타 입주비용 기본값 없음 — 사용자가 직접 입력
+  // ── 팝오버: manual 모드로 직접 제어 (show.bs.popover 충돌 방지)
+  document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function(el){
+    new bootstrap.Popover(el, {trigger:'manual', container:'body', html:false});
+    el.addEventListener('click', function(e){
+      e.stopPropagation();
+      // 다른 팝오버 모두 닫기
+      document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function(other){
+        if (other !== el) {
+          var p = bootstrap.Popover.getInstance(other);
+          if (p) p.hide();
+        }
+      });
+      // 현재 팝오버 토글
+      var cur = bootstrap.Popover.getInstance(el);
+      if (cur) cur.toggle();
+    });
+  });
+  document.addEventListener('click', function(){
+    document.querySelectorAll('[data-bs-toggle="popover"]').forEach(function(el){
+      var p = bootstrap.Popover.getInstance(el);
+      if (p) p.hide();
+    });
+  });
+  // 세션 체크
+  _sess = (typeof getSession === 'function') ? getSession() : null;
+  if (!_sess) { location.href = 'index.html'; return; }
+
+  // 헤더에 동호수 표시
+  if (_UNIT) {
+    const ttl = document.getElementById('calc-unit-title');
+    const sub = document.getElementById('calc-unit-sub');
+    if (ttl) ttl.textContent = _UNIT;
+    if (sub) sub.textContent = _TPARAM ? `${_TPARAM} 타입` : '입주 현금 계산기';
+  }
+
+  // 기본정보 자동 입력 (저장 데이터 없을 때 세션·URL 파라미터로 채움)
+  const _saved = _UNIT ? getCalcData(_UNIT) : null;
+  if (_saved) {
+    loadData(_saved);
+  } else {
+    // 이름
+    const nameEl = document.getElementById('f-name');
+    if (nameEl && _sess.name) nameEl.value = _sess.name;
+    // 동호수
+    const unitEl = document.getElementById('f-unit');
+    if (unitEl && _UNIT) unitEl.value = _UNIT;
+    // 평형타입 → 면적·추가분담금 자동계산
+    if (_TPARAM) {
+      const selEl = document.getElementById('f-type');
+      if (selEl && TYPE_DATA[_TPARAM]) { selEl.value = _TPARAM; onTypeChange(); }
+    }
+  }
+
+  calc();
+})();
+</script>
+
+<!-- 저장 완료 토스트 -->
+<div id="save-toast" style="
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:#1e293b;color:#fff;border-radius:10px;
+  padding:10px 20px;font-size:13px;font-weight:600;
+  display:none;align-items:center;gap:8px;
+  box-shadow:0 4px 20px rgba(0,0,0,.35);z-index:9999;
+  white-space:nowrap;
+">
+  <i class="fas fa-circle-check" style="color:#4ade80"></i>
+  <span id="save-toast-msg">저장되었습니다</span>
+</div>
+</body>
+</html>
