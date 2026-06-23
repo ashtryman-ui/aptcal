@@ -972,9 +972,20 @@ async function shareResult() {
   try {
     await navigator.clipboard.writeText(text);
     showSaveToast('결과가 클립보드에 복사되었습니다');
+    return;
+  } catch {}
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try {
+    document.execCommand('copy');
+    showSaveToast('결과가 클립보드에 복사되었습니다');
   } catch {
-    showSaveToast('공유를 지원하지 않는 브라우저입니다');
+    showSaveToast('복사에 실패했습니다. 직접 선택 후 복사해 주세요.');
   }
+  document.body.removeChild(ta);
 }
 
 // ── URL 파라미터 ─────────────────────────────────────────────
