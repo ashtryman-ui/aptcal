@@ -736,6 +736,13 @@
   </div>
 </div>
 
+<!-- 결과 공유 -->
+<div style="margin-bottom:10px;">
+  <button onclick="shareResult()" style="width:100%;padding:12px;font-size:14px;font-weight:700;background:#fff;color:var(--navy);border:2px solid var(--navy);border-radius:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+    <i class="fas fa-share-nodes"></i>결과 공유하기
+  </button>
+</div>
+
 <!-- 주의사항 -->
 <div class="notebox">
   <i class="fas fa-triangle-exclamation text-warning me-1"></i>
@@ -948,6 +955,43 @@ function calc() {
   } catch(e) { console.error('calc error:', e); }
 }
 
+
+// ── 결과 공유 ────────────────────────────────────────────────
+function buildShareText() {
+  const type = ($('f-type') || {}).value || '';
+  const pyeong = (type && TYPE_DATA[type]) ? TYPE_DATA[type].pyeong + '평' : '';
+  const lines = [
+    '📊 입주 현금 계산 결과',
+    '─────────────────',
+    `타입: ${type || '—'}${pyeong ? ' (' + pyeong + ')' : ''}`,
+    `추가분담금: ${fmtS(nv('f-burden'))}`,
+  ];
+  const optT = nv('f-balcony') + nv('f-door') + nv('f-aircon') + nv('f-opt-etc');
+  if (optT) lines.push(`옵션비: ${fmtS(optT)}`);
+  const taxT = nv('f-acq-tax') + nv('f-stamp') + nv('f-bond') + nv('f-legal');
+  if (taxT) lines.push(`취득세·등기비: ${fmtS(taxT)}`);
+  if (movLoanOn && !zeroIntOn) lines.push(`이주비 이자: ${fmtS(nv('f-mov-int'))}`);
+  if (midLoanOn) lines.push(`중도금 이자: ${fmtS(nv('f-mid-int-pay'))}`);
+  if (mortgageOn) lines.push(`담보대출 차감: -${fmtS(nv('f-mtg'))}`);
+  lines.push('─────────────────');
+  lines.push(`💰 실제 필요한 현금: ${fmtS(_currentTotal)}`);
+  lines.push('');
+  lines.push(`계산해보기 👉 ${window.location.href.split('?')[0].replace('calculator.html', 'index.html')}`);
+  return lines.join('\n');
+}
+
+async function shareResult() {
+  const text = buildShareText();
+  if (navigator.share) {
+    try { await navigator.share({ title: '입주 현금 계산 결과', text }); return; } catch {}
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    showSaveToast('결과가 클립보드에 복사되었습니다');
+  } catch {
+    showSaveToast('공유를 지원하지 않는 브라우저입니다');
+  }
+}
 
 // ── URL 파라미터 ─────────────────────────────────────────────
 const _params  = new URLSearchParams(location.search);
