@@ -127,7 +127,7 @@
 var session = requireSession('index.html');
 if (session && !session.isAdmin) location.href = 'dashboard.html';
 
-var TYPE_LABEL = {'59A':'25평','59B':'25평','73A':'30평','73B':'30평','73C':'30평','84A':'33평','84B':'33평','84C':'33평','120B':'46평'};
+var TYPE_LABEL = {'59A':'24평','59B':'24평','73A':'29평','73B':'29평','73C':'29평','84A':'33평','84B':'33평','84C':'33평','120B':'46평'};
 
 function getMemberInfo(phone) {
   var ms = MEMBERS.filter(function(m){ return m.phone === phone; });
