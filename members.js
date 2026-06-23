@@ -80,3 +80,16 @@ function maskPhone(p) {
   if (d.length >= 11) return `${d.slice(0,3)}-****-${d.slice(-4)}`;
   return p;
 }
+
+// ── 추가분담금 기본값 ─────────────────────────────────────
+const DEFAULT_BURDENS = { 24: 77000000, 29: 94000000, 33: 89000000, 46: 128000000 };
+const _BK = 'aptcal_burden_defaults';
+function getBurdenDefault(pyeong) {
+  try { const s = JSON.parse(localStorage.getItem(_BK)); if (s && s[pyeong] != null) return s[pyeong]; } catch {}
+  return DEFAULT_BURDENS[pyeong] || 0;
+}
+function getBurdenDefaults() {
+  try { const s = JSON.parse(localStorage.getItem(_BK)); return { ...DEFAULT_BURDENS, ...s }; } catch {}
+  return { ...DEFAULT_BURDENS };
+}
+function setBurdenDefaults(obj) { localStorage.setItem(_BK, JSON.stringify(obj)); }

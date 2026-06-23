@@ -391,14 +391,40 @@
   </div>
 
   <div class="fr">
-    <div class="fl">국민주택채권 (실부담)
+    <div class="fl">매입의무액
       <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
-        data-bs-title="국민주택채권"
-        data-bs-content="등기 시 의무 매입 채권입니다. 즉시 매도 시 할인된 실부담액만 납부합니다. 법무사 또는 은행에 문의하세요.">
+        data-bs-title="매입의무액"
+        data-bs-content="분양가 × 매입비율로 자동계산됩니다. 85㎡ 이하: 2억↓ 1% / 2~4억 1.3% / 4~6억 1.9% / 6억↑ 2.6%. 120타입(85㎡ 초과): 2억↓ 1.3% / 2~4억 1.6% / 4~6억 2.1% / 6억↑ 2.6%.">
         <i class="fas fa-circle-info"></i></button>
+      <small>분양가·타입 입력 시 자동계산</small>
+    </div>
+    <div class="fres" id="r-bond-mandatory">—</div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">즉시매도 할인율
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="즉시매도 할인율"
+        data-bs-content="채권을 즉시 매도할 때 손실되는 비율입니다. 시장금리에 따라 매일 변동하므로 등기 전 은행·법무사에 확인 후 수정하세요.">
+        <i class="fas fa-circle-info"></i></button>
+      <small>시장금리 연동 · 확인 후 수정</small>
     </div>
     <div class="fi">
-      <input type="number" id="f-bond" placeholder="국민주택채권 매입액을 입력해주세요" oninput="calc()" onfocus="this.select()">
+      <input type="number" id="f-bond-discount" class="wsm auto" value="3" step="0.1" oninput="onBondDiscountInput()" onfocus="this.select()">
+      <span class="unit">%</span>
+    </div>
+  </div>
+
+  <div class="fr">
+    <div class="fl">국민주택채권 (실부담)
+      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
+        data-bs-title="국민주택채권 실부담"
+        data-bs-content="매입의무액 × 즉시매도할인율로 자동계산됩니다. 실제 고지서와 대조 후 수정하세요.">
+        <i class="fas fa-circle-info"></i></button>
+      <small>매입의무액 × 할인율 (수정 가능)</small>
+    </div>
+    <div class="fi">
+      <input type="number" id="f-bond" class="auto" placeholder="자동" oninput="onBondInput()" onfocus="this.select()">
       <span class="unit">원</span>
     </div>
   </div>
@@ -735,10 +761,8 @@ const TYPE_DATA = {
   '84C':  { area: 109.01, pyeong: 33 },
   '120B': { area: 152.31, pyeong: 46 },
 };
-const PPP = 10550000; // 평당 1,055만원
-
-let manualBurden = false, typeBurden = false, currentType = '';
-let manualAcqTax = false;
+let manualBurden = false, currentType = '';
+let manualAcqTax = false, manualBond = false;
 let movLoanOn = false, zeroIntOn = false, midLoanOn = false, mortgageOn = false;
 
 const $  = id => document.getElementById(id);
@@ -778,6 +802,19 @@ function calcLegalFee(price) {
   return { fee: fee + vat, note: `보수 ${fee.toLocaleString()}원 + 부가세 ${vat.toLocaleString()}원 (참고값)` };
 }
 
+// ── 국민주택채권 매입비율 ────────────────────────────────────
+function calcBondMandatory(price, typeKey) {
+  if (!price || !typeKey) return 0;
+  const large = typeKey.startsWith('120');
+  let r;
+  if (large) {
+    if (price<=2e8) r=0.013; else if(price<=4e8) r=0.016; else if(price<=6e8) r=0.021; else r=0.026;
+  } else {
+    if (price<=2e8) r=0.010; else if(price<=4e8) r=0.013; else if(price<=6e8) r=0.019; else r=0.026;
+  }
+  return Math.round(price * r);
+}
+
 function acqTax(p) {
   if (!p) return null;
   let r,n;
@@ -795,9 +832,12 @@ function onTypeChange() {
   if (t&&TYPE_DATA[t]) {
     const {area,pyeong}=TYPE_DATA[t];
     $('f-area').value=area;
-    typeBurden=false; manualBurden=false;
+    if (!manualBurden) {
+      $('f-burden').value=getBurdenDefault(pyeong);
+      $('burden-note').textContent=`${pyeong}평 기본값 (수정 가능)`;
+    }
   } else {
-    currentType=''; typeBurden=false;
+    currentType='';
     $('f-area').value='';
     $('burden-note').textContent='조합 고지서에서 확인한 금액을 입력하세요';
   }
@@ -805,14 +845,16 @@ function onTypeChange() {
 }
 
 function onBurden() {
-  manualBurden=$('f-burden').value!==''; typeBurden=false;
+  manualBurden=$('f-burden').value!=='';
   if (currentType&&TYPE_DATA[currentType])
-    $('burden-note').textContent=`${TYPE_DATA[currentType].pyeong}평 기준 · 수동 입력으로 변경됨`;
+    $('burden-note').textContent=`${TYPE_DATA[currentType].pyeong}평 기본값 · 수동 입력됨`;
   calc();
 }
 let manualStamp = false, manualLegal = false;
 function onStampInput() { manualStamp = true; calc(); }
 function onLegalInput() { manualLegal = true; calc(); }
+function onBondInput() { manualBond = true; calc(); }
+function onBondDiscountInput() { manualBond = false; calc(); }
 
 
 function onAcqTaxInput() { manualAcqTax=true; calc(); }
@@ -829,9 +871,9 @@ function calc() {
   $('r-rights').textContent=fmt(rights);
 
   if (!manualBurden) {
-    if (typeBurden&&currentType&&TYPE_DATA[currentType])
-      $('f-burden').value=TYPE_DATA[currentType].pyeong*PPP;
-    else if (!typeBurden&&mp&&ap&&ra)
+    if (currentType&&TYPE_DATA[currentType])
+      $('f-burden').value=getBurdenDefault(TYPE_DATA[currentType].pyeong);
+    else if (mp&&ap&&ra)
       $('f-burden').value=Math.round(Math.max(0,mp-rights));
   }
   const burden=nv('f-burden');
@@ -861,6 +903,17 @@ function calc() {
     $('f-legal').value = '';
     const ln = document.getElementById('legal-note');
     if (ln) ln.textContent = '분양가 입력 후 자동계산';
+  }
+  // 국민주택채권 자동계산
+  if (mp && currentType) {
+    const bm = calcBondMandatory(mp, currentType);
+    $('r-bond-mandatory').textContent = fmt(bm);
+    if (!manualBond) {
+      const dr = nv('f-bond-discount', 3) / 100;
+      $('f-bond').value = Math.round(bm * dr);
+    }
+  } else {
+    $('r-bond-mandatory').textContent = '—';
   }
   const at=nv('f-acq-tax'), st=nv('f-stamp'), bn=nv('f-bond'), lf=nv('f-legal');
   const taxT=at+st+bn+lf;
@@ -919,7 +972,7 @@ function showSaveToast(msg) {
 const INPUT_IDS = [
   'f-member-price','f-appraised','f-ratio','f-burden',
   'f-balcony','f-door','f-aircon','f-opt-etc',
-  'f-acq-tax','f-stamp','f-bond','f-legal',
+  'f-acq-tax','f-stamp','f-bond-discount','f-bond','f-legal',
   'f-mgmt','f-move','f-misc',
   'f-mov-loan','f-mov-int',
   'f-mid-total','f-mid-self','f-mid-loan','f-mid-rate','f-mid-months','f-mid-int-pay',
@@ -940,7 +993,7 @@ function saveData() {
     inputs: gatherInputs(),
     toggles: { movLoanOn, zeroIntOn, midLoanOn, mortgageOn },
     total: _currentTotal,
-    manualBurden, manualAcqTax,
+    manualBurden, manualAcqTax, manualBond,
   };
   setCalcData(_UNIT, data);
   showSaveToast(_UNIT + ' 저장 완료');
@@ -968,6 +1021,7 @@ function loadData(data) {
   // manualBurden/manualAcqTax 복원 (저장값 우선)
   if (data.manualBurden !== undefined) manualBurden = data.manualBurden;
   if (data.manualAcqTax !== undefined) manualAcqTax  = data.manualAcqTax;
+  if (data.manualBond   !== undefined) manualBond    = data.manualBond;
   // 토글 복원
   const t = data.toggles || {};
   if (t.movLoanOn)  setMovLoan(true);

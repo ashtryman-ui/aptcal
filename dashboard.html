@@ -269,6 +269,49 @@ function openCalc(unitEnc, type) {
 
 // ── 로그 렌더링 (관리자) ──────────────────────────────
 
+function renderBurdenSettings() {
+  const d = getBurdenDefaults();
+  const rows = [
+    { p: 24, label: '24평 (59타입)' },
+    { p: 29, label: '29평 (73타입)' },
+    { p: 33, label: '33평 (84타입)' },
+    { p: 46, label: '46평 (120타입)' },
+  ].map(({ p, label }) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:13px;color:#475569">${label}</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="number" id="burden-cfg-${p}" value="${d[p]}"
+          style="width:140px;border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;text-align:right;outline:none;">
+        <span style="font-size:12px;color:#94a3b8">원</span>
+      </div>
+    </div>`).join('');
+  return `
+<div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 5px rgba(0,0,0,.09);margin-bottom:12px;">
+  <div style="background:var(--navy);padding:12px 16px;color:#fff;font-size:13px;font-weight:700;">
+    <i class="fas fa-sliders me-2"></i>추가분담금 기본값 설정
+  </div>
+  <div style="padding:14px 16px;">
+    ${rows}
+    <button onclick="saveBurdenCfg()" style="width:100%;margin-top:14px;padding:11px;font-size:14px;font-weight:700;background:var(--blue);color:#fff;border:none;border-radius:10px;cursor:pointer;">
+      <i class="fas fa-floppy-disk me-2"></i>저장
+    </button>
+    <div id="burden-cfg-msg" style="text-align:center;margin-top:8px;font-size:12px;color:#166534;display:none;">저장되었습니다 ✓</div>
+  </div>
+</div>`;
+}
+
+function saveBurdenCfg() {
+  const obj = {};
+  [24, 29, 33, 46].forEach(p => {
+    const v = parseFloat(document.getElementById(`burden-cfg-${p}`).value);
+    if (!isNaN(v)) obj[p] = v;
+  });
+  setBurdenDefaults(obj);
+  const msg = document.getElementById('burden-cfg-msg');
+  msg.style.display = 'block';
+  setTimeout(() => { msg.style.display = 'none'; }, 2000);
+}
+
 function renderAdminHome() {
   const logs  = getLogs();
   const total = logs.reduce((s, l) => s + l.count, 0);
@@ -309,6 +352,7 @@ function renderAdminHome() {
       </div>
     </div>
   </div>
+  ${renderBurdenSettings()}
 </div>`;
 }
 
