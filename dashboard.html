@@ -448,7 +448,7 @@ function renderContent(tab) {
   if (!session) return;
 
   document.getElementById('hd-sub').textContent =
-    session.isAdmin ? '관리자 모드' : `${session.name}님 총회참석해야 추가분담금에 대해 알수 있습니다.`;
+    session.isAdmin ? '관리자 모드' : `${session.name}님 총회참석해야 추가분담금에 대해 알수...`;
 
   const tabs = buildTabs();
   if (!tabs.length) {
