@@ -391,17 +391,6 @@
   </div>
 
   <div class="fr">
-    <div class="fl">매입의무액
-      <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
-        data-bs-title="매입의무액"
-        data-bs-content="분양가 × 매입비율로 자동계산됩니다. 85㎡ 이하: 2억↓ 1% / 2~4억 1.3% / 4~6억 1.9% / 6억↑ 2.6%. 120타입(85㎡ 초과): 2억↓ 1.3% / 2~4억 1.6% / 4~6억 2.1% / 6억↑ 2.6%.">
-        <i class="fas fa-circle-info"></i></button>
-      <small>분양가·타입 입력 시 자동계산</small>
-    </div>
-    <div class="fres" id="r-bond-mandatory">—</div>
-  </div>
-
-  <div class="fr">
     <div class="fl">즉시매도 할인율
       <button class="ibtn" type="button" data-bs-toggle="popover" data-bs-placement="top"
         data-bs-title="즉시매도 할인율"
@@ -912,15 +901,10 @@ function calc() {
     if (ln) ln.textContent = '분양가 입력 후 자동계산';
   }
   // 국민주택채권 자동계산
-  if (mp && currentType) {
+  if (mp && currentType && !manualBond) {
     const bm = calcBondMandatory(mp, currentType);
-    $('r-bond-mandatory').textContent = fmt(bm);
-    if (!manualBond) {
-      const dr = nv('f-bond-discount', 3) / 100;
-      $('f-bond').value = Math.round(bm * dr);
-    }
-  } else {
-    $('r-bond-mandatory').textContent = '—';
+    const dr = nv('f-bond-discount', 3) / 100;
+    $('f-bond').value = Math.round(bm * dr);
   }
   const at=nv('f-acq-tax'), st=nv('f-stamp'), bn=nv('f-bond'), lf=nv('f-legal');
   const taxT=at+st+bn+lf;
