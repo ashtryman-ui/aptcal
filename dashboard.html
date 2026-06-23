@@ -14,7 +14,7 @@
     /* header */
     .hd{background:var(--navy);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
     .hd .ttl{color:#fff;font-size:15px;font-weight:700;letter-spacing:-.3px}
-    .hd .sub{color:rgba(255,255,255,.6);font-size:11px;margin-top:2px}
+    .hd .sub{color:#fff;font-size:12px;margin-top:2px}
     .btn-logout{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;
                  border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;}
     .btn-logout:hover{background:rgba(255,255,255,.22)}
@@ -448,7 +448,7 @@ function renderContent(tab) {
   if (!session) return;
 
   document.getElementById('hd-sub').textContent =
-    session.isAdmin ? '관리자 모드' : `${session.name} 님 반갑습니다`;
+    session.isAdmin ? '관리자 모드' : `${session.name}님 총회참석해야 추가분담금에 대해 알수 있습니다.`;
 
   const tabs = buildTabs();
   if (!tabs.length) {
